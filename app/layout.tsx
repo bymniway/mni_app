@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Masjid Nurul Iman',
-  description: 'Aplikasi Penjualan Hewan Kurban Masjid Nurul Iman',
+  title: 'Masjid Nurul Iman LAN',
+  description: 'Website Masjid Nurul Iman LAN',
 };
 
 export default function RootLayout({
