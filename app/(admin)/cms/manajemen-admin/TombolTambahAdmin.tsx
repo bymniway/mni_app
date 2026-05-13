@@ -29,7 +29,7 @@ export default function TombolTambahAdmin() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className='bg-mni-primary hover:bg-mni-primary/90 text-white px-4 py-2 rounded-xl font-medium transition-colors flex items-center space-x-2'>
+        className='bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl font-medium transition-colors flex items-center space-x-2'>
         <UserPlus className='w-5 h-5' />
         <span>Tambah Admin</span>
       </button>

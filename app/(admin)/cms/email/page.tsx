@@ -115,7 +115,7 @@ export default function EditorEmailMaster() {
             </div>
             <div>
               <h1 className='text-2xl font-black text-slate-800 tracking-tight'>
-                Email Visual Engine
+                Visual Editor Email
               </h1>
               <p className='text-xs font-bold text-slate-400 uppercase tracking-widest'>
                 Branding & Communication Editor
@@ -131,7 +131,7 @@ export default function EditorEmailMaster() {
             ) : (
               <Save className='w-4 h-4 mr-2' />
             )}
-            {isSaving ? 'Saving...' : 'Publish Templates'}
+            {isSaving ? 'Menyimpan...' : 'Publikasi'}
           </button>
         </div>
 

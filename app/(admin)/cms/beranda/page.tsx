@@ -339,11 +339,11 @@ export default function EditorBeranda() {
         animate={{ y: 0, opacity: 1 }}
         className='sticky top-4 z-70 flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-100 max-w-7xl mx-auto mb-8 gap-4'>
         <div className='flex items-center'>
-          <div className='w-10 h-10 bg-mni-primary text-white rounded-xl flex items-center justify-center mr-3 shrink-0'>
+          <div className='w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center mr-3 shrink-0'>
             <MousePointerClick className='w-6 h-6' />
           </div>
           <div>
-            <h1 className='text-2xl font-black text-slate-800 tracking-tight'>
+            <h1 className='text-xl font-bold text-slate-800 tracking-tight'>
               Live Visual Editor Beranda
             </h1>
             <p className='text-xs text-gray-500 font-medium hidden md:block'>
@@ -353,14 +353,14 @@ export default function EditorBeranda() {
         </div>
 
         <div className='flex items-center gap-3 w-full lg:w-auto'>
-          <div className='flex flex-1 lg:flex-none items-center bg-gray-50 px-3 py-2 rounded-xl border border-gray-200'>
-            <span className='text-[10px] font-bold text-gray-500 mr-2 uppercase tracking-wider hidden sm:block'>
+          <div className='flex flex-1 lg:flex-none items-center bg-teal-500 px-3 py-2 rounded-xl border border-gray-200'>
+            <span className='text-[10px] font-bold text-gray-100 mr-2 uppercase tracking-wider hidden sm:block'>
               Koreksi Hijriah:
             </span>
             <select
               value={adj}
               onChange={(e) => setAdj(e.target.value)}
-              className='bg-transparent text-sm font-bold text-gray-800 outline-none w-full lg:w-auto cursor-pointer'>
+              className='bg-transparent text-sm font-semibold text-white outline-none w-full lg:w-auto cursor-pointer'>
               <option value='-2'>-2 Hari</option>
               <option value='-1'>-1 Hari</option>
               <option value='0'>Normal (0)</option>
@@ -371,7 +371,7 @@ export default function EditorBeranda() {
           <button
             onClick={handlePublish}
             disabled={isSaving || isUploading}
-            className='bg-mni-primary text-white px-5 py-2.5 rounded-xl font-bold flex items-center shadow-md hover:bg-mni-primaryHover transition hover:-translate-y-0.5 shadow-teal-600/20 disabled:opacity-50 disabled:hover:translate-y-0 shrink-0'>
+            className='bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center shadow-md hover: bg-teal-700 transition hover:-translate-y-0.5 shadow-teal-600/20 disabled:opacity-50 disabled:hover:translate-y-0 shrink-0'>
             {isSaving || isUploading ? (
               <Loader2 className='w-5 h-5 animate-spin mr-2' />
             ) : (

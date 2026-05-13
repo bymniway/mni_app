@@ -1684,17 +1684,6 @@ export default function ZiswafCalculator({
     );
   };
 
-  if (isFetchingPrices) {
-    return (
-      <div className='min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4'>
-        <Loader2 className='w-12 h-12 text-teal-600 animate-spin' />
-        <p className='text-teal-800 font-bold animate-pulse'>
-          Menyiapkan Kalkulator Ziswaf...
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className='pb-24 bg-slate-50 min-h-screen'>
       <style

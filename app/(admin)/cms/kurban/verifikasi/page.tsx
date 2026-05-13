@@ -291,7 +291,7 @@ export default function VerifikasiKurbanPage() {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-4 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all whitespace-nowrap border ${filter === f ? 'bg-teal-700 text-white border-teal-700 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-teal-200'}`}>
+                  className={`px-4 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all whitespace-nowrap border ${filter === f ? 'bg-teal-600 text-white border-teal-700 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-teal-200'}`}>
                   {f}{' '}
                   {counts[f as keyof typeof counts] > 0 && (
                     <sup className='ml-0.5 font-black opacity-80'>

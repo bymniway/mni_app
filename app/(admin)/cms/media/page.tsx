@@ -1066,7 +1066,7 @@ export default function AdminMediaCMS() {
             resetForm();
             setIsModalOpen(true);
           }}
-          className='bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-full font-bold flex items-center shadow-xl shadow-slate-900/20 transition-all active:scale-95'>
+          className='bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-full font-bold flex items-center shadow-xl shadow-slate-900/20 transition-all active:scale-95'>
           <Plus className='w-5 h-5 mr-2' /> Tulis Konten Baru
         </button>
       </div>

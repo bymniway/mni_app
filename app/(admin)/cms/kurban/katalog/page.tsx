@@ -433,7 +433,7 @@ export default function KelolaHewanKurban() {
               resetForm();
               setIsModalOpen(true);
             }}
-            className='flex items-center space-x-2 bg-mni-primary text-white px-5 py-2.5 rounded-xl font-medium shadow-sm hover:bg-mni-primaryHover transition-colors'>
+            className='flex items-center space-x-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm hover:bg-mni-primaryHover transition-colors'>
             <Plus className='w-5 h-5' />{' '}
             <span className='hidden sm:block'>Tambah</span>
           </button>
@@ -470,7 +470,7 @@ export default function KelolaHewanKurban() {
                 <button
                   onClick={handleSimpanPengaturan}
                   disabled={isSavingSetting || isUploadingQris}
-                  className='flex items-center bg-mni-primary hover:bg-mni-primaryHover text-white px-6 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 shadow-sm'>
+                  className='flex items-center bg-teal-600 hover:bg-mni-primaryHover text-white px-6 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 shadow-sm'>
                   {isSavingSetting ? (
                     <Loader2 className='w-4 h-4 mr-2 animate-spin' />
                   ) : (

@@ -247,7 +247,7 @@ export default function EditorProfil() {
         animate={{ y: 0, opacity: 1 }}
         className='sticky top-4 z-50 flex justify-between items-center bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-100 max-w-7xl mx-auto mb-8'>
         <div className='flex items-center'>
-          <div className='w-10 h-10 bg-mni-primary/10 text-mni-primary rounded-xl flex items-center justify-center mr-3'>
+          <div className='w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center mr-3'>
             <MousePointerClick className='w-5 h-5' />
           </div>
           <div>
@@ -263,7 +263,7 @@ export default function EditorProfil() {
         <button
           onClick={handlePublish}
           disabled={isSaving || isUploading}
-          className='bg-mni-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center shadow-md hover:bg-mni-primaryHover transition disabled:opacity-50'>
+          className='bg-teal-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center shadow-md hover:bg-mni-primaryHover transition disabled:opacity-50'>
           {isSaving || isUploading ? (
             <Loader2 className='w-5 h-5 animate-spin mr-2' />
           ) : (

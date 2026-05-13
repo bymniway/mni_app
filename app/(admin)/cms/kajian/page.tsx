@@ -208,12 +208,12 @@ export default function EditorKajian() {
         animate={{ y: 0, opacity: 1 }}
         className='sticky top-4 z-50 flex justify-between items-center bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-100 max-w-7xl mx-auto mb-8'>
         <div className='flex items-center'>
-          <div className='w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mr-3'>
+          <div className='w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center mr-3'>
             <MousePointerClick className='w-5 h-5' />
           </div>
           <div>
             <h1 className='text-xl font-bold text-mni-text'>
-              Live Editor: Jadwal Kajian
+              Live Visual Editor Jadwal Kajian
             </h1>
             <p className='text-xs text-gray-500 font-medium'>
               Klik teks Hari, Waktu, Ustadz, atau Tema untuk mengedit.
@@ -223,13 +223,13 @@ export default function EditorKajian() {
         <button
           onClick={handlePublish}
           disabled={isSaving || isUploading}
-          className='bg-mni-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center shadow-md hover:bg-mni-primaryHover transition disabled:opacity-50'>
+          className='bg-teal-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center shadow-md hover:bg-mni-primaryHover transition disabled:opacity-50'>
           {isSaving || isUploading ? (
             <Loader2 className='w-5 h-5 animate-spin mr-2' />
           ) : (
             <Save className='w-5 h-5 mr-2' />
           )}{' '}
-          {isUploading ? 'Mengunggah...' : 'Publikasikan'}
+          {isUploading ? 'Mengunggah...' : 'Publikasi'}
         </button>
       </motion.div>
 
