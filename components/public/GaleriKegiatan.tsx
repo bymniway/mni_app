@@ -1071,7 +1071,7 @@ export default function GaleriKegiatan({
                       className={`w-5 h-5 md:w-6 md:h-6 ${localLiked[filteredList[lightboxIdx].id] ? 'fill-current' : ''}`}
                     />
                   </motion.div>
-                  <span className='text-[10px] md:text-[11px] font-bold text-white drop-shadow-md hidden md:block'>
+                  <span className='text-[10px] md:text-[11px] font-bold text-white drop-shadow-md md:block'>
                     {interactionData[filteredList[lightboxIdx].id]?.isFetching
                       ? '...'
                       : formatAngka(
@@ -1086,7 +1086,7 @@ export default function GaleriKegiatan({
                   <div className='p-2.5 md:p-3.5 bg-black/50 hover:bg-black/80 border border-white/20 text-white rounded-full backdrop-blur-md shadow-lg transition-colors'>
                     <Share2 className='w-5 h-5 md:w-6 md:h-6' />
                   </div>
-                  <span className='text-[10px] md:text-[11px] font-bold text-white drop-shadow-md hidden md:block'>
+                  <span className='text-[10px] md:text-[11px] font-bold text-white drop-shadow-md md:block'>
                     Share
                   </span>
                 </button>
@@ -1135,7 +1135,7 @@ export default function GaleriKegiatan({
                           stiffness: 300,
                           damping: 25,
                         }}
-                        className='flex items-center gap-3 bg-black/50 backdrop-blur-md px-3 md:px-4 py-2 md:py-2.5 rounded-full border border-white/10 w-max max-w-[200px] md:max-w-md shadow-lg'>
+                        className='flex items-center gap-3 bg-black/50 backdrop-blur-md px-3 md:px-4 py-2 md:py-2.5 rounded-full border border-white/10 w-max max-w-[300px] md:max-w-xl shadow-lg'>
                         <div className='w-6 h-6 md:w-7 md:h-7 rounded-full bg-gradient-to-tr from-mni-primary to-mni-accent flex items-center justify-center text-white text-[10px] md:text-[11px] font-bold shrink-0'>
                           {comment.nama.charAt(0)}
                         </div>
