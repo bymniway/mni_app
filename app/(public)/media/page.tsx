@@ -457,7 +457,7 @@ export default function MediaPage() {
         {/* iOS-STYLE STICKY HEADER DENGAN FULL-WIDTH MOBILE SEARCH */}
         {/* ==================================================== */}
         <div
-          className={`sticky top-[80px] md:top-[96px] z-[60] bg-transparent py-2 md:py-3 -mx-4 px-4 md:mx-0 md:px-0 flex justify-between items-center gap-3 lg:gap-6 pointer-events-none`}>
+          className={`sticky top-[80px] md:top-[96px] z-[30] bg-transparent py-2 md:py-3 -mx-4 px-4 md:mx-0 md:px-0 flex justify-between items-center gap-3 lg:gap-6 pointer-events-none`}>
           {/* KIRI: Sapaan Situasional (Animasi Menghilang saat Mobile Search Aktif) */}
           <div
             className={`flex items-start justify-center relative pointer-events-auto select-none transition-all duration-500 ease-in-out overflow-hidden ${isMobileSearchOpen ? 'max-w-0 opacity-0 -translate-x-10' : 'flex-1 lg:flex-none opacity-100 translate-x-0'}`}>

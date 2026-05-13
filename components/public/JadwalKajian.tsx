@@ -121,7 +121,7 @@ export default function JadwalKajian({
                           e.stopPropagation();
                           onToggleSelect(item.id);
                         }}
-                        className={`absolute top-3 left-3 z-[50] w-[22px] h-[22px] rounded-full border-[1.5px] transition-all flex items-center justify-center
+                        className={`absolute top-3 left-3 z-[30] w-[22px] h-[22px] rounded-full border-[1.5px] transition-all flex items-center justify-center
                           ${
                             isSelected
                               ? 'border-teal-500 bg-teal-500 shadow-[0_0_12px_rgba(20,184,166,0.6)]'

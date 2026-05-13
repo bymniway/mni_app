@@ -1240,7 +1240,7 @@ export default function AdminMediaCMS() {
               <div className='flex items-center gap-3'>
                 <button
                   onClick={() => setShowSource(!showSource)}
-                  className='text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-2 transition-colors hidden md:block'>
+                  className='text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-2 transition-colors md:block'>
                   {showSource ? 'Matikan Kode' : '<> Kode HTML'}
                 </button>
                 <button

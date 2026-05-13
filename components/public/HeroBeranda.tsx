@@ -1596,8 +1596,8 @@ export default function HeroBeranda({
         whileInView='visible'
         variants={staggerContainer}
         className='max-w-7xl mx-auto px-4 md:px-10 mt-16 md:mt-24'>
-        <div className='flex justify-between items-end mb-8'>
-          <div>
+        <div className='flex justify-between items-end mb-8 gap-4'>
+          <div className='flex-1'>
             <h2 className='text-2xl md:text-3xl font-bold text-mni-text mb-2'>
               <span
                 contentEditable={isEditor}
@@ -1623,10 +1623,11 @@ export default function HeroBeranda({
               </span>
             </p>
           </div>
+
           <Link
             href={'/media'}
-            className='hidden md:flex items-center text-mni-primary font-bold'>
-            Lihat Semua <ArrowRight className='w-4 h-4 ml-2' />
+            className='flex items-center text-mni-primary font-bold text-xs md:text-base hover:text-teal-700 transition-colors shrink-0 mb-1 md:mb-0'>
+            Lihat Semua <ArrowRight className='w-4 h-4 ml-1 md:ml-2' />
           </Link>
         </div>
 

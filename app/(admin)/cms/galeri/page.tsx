@@ -3,15 +3,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import GaleriKegiatan from '@/components/public/GaleriKegiatan';
-import {
-  Save,
-  Loader2,
-  MousePointerClick,
-  Plus,
-  Trash2,
-  X,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Save, Loader2, MousePointerClick, Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function EditorGaleri() {
   const [isLoading, setIsLoading] = useState(true);
@@ -21,9 +14,8 @@ export default function EditorGaleri() {
   const [form, setForm] = useState({ judul: '', deskripsi: '' });
   const [galleryList, setGalleryList] = useState<any[]>([]);
 
-  // STATE BARU: MULTI-SELECT GALERI
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const isSelectionMode = selectedIds.length > 0;
+  // PENTING: State selectedIds dan isSelectionMode sudah DIBERSIHKAN dari sini
+  // karena logika multi-select-nya sudah diurus secara mandiri oleh komponen Child (GaleriKegiatan)
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -62,8 +54,6 @@ export default function EditorGaleri() {
   const handleItemDelete = (id: string) => {
     if (confirm('Hapus kotak foto ini dari galeri?')) {
       setGalleryList((prev) => prev.filter((p) => p.id !== id));
-      // Hapus dari selection jika ada
-      setSelectedIds((prev) => prev.filter((i) => i !== id));
     }
   };
 
@@ -143,18 +133,12 @@ export default function EditorGaleri() {
     alert('Galeri berhasil dipublikasikan!');
   };
 
-  // FUNGSI BARU: MULTI-SELECT
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
-    );
-  };
-
-  const handleBulkDelete = () => {
-    if (confirm(`Hapus ${selectedIds.length} foto dari galeri?`)) {
-      setGalleryList((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
-      setSelectedIds([]);
-    }
+  // ==========================================
+  // FUNGSI BARU: TANGKAP ARRAY ID DARI CHILD, LALU HAPUS DARI STATE
+  // ==========================================
+  const handleBulkDelete = (idsToDelete: string[]) => {
+    // Hapus array ID terpilih dari daftar galeri yang ada di layar (tanpa alert confirm lagi)
+    setGalleryList((prev) => prev.filter((p) => !idsToDelete.includes(p.id)));
   };
 
   if (isLoading)
@@ -166,9 +150,6 @@ export default function EditorGaleri() {
 
   return (
     <div className='relative min-h-screen'>
-      {/* ==========================================
-          INJECT ANIMASI JIGGLE ELEGANT
-          ========================================== */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -189,49 +170,6 @@ export default function EditorGaleri() {
       `,
         }}
       />
-
-      {/* ==========================================
-          FLOATING ACTION BAR (PILL) ALA MACOS
-          ========================================== */}
-      <AnimatePresence>
-        {isSelectionMode && (
-          <motion.div
-            initial={{ y: 100, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 100, opacity: 0, scale: 0.9 }}
-            transition={{ type: 'spring', bounce: 0.3 }}
-            className='fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 text-white px-3 py-3 rounded-full shadow-2xl flex items-center gap-3 w-max'>
-            <div className='flex items-center gap-3 pl-2 pr-4 border-r border-zinc-700'>
-              <span className='flex h-3 w-3 relative'>
-                <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75'></span>
-                <span className='relative inline-flex rounded-full h-3 w-3 bg-teal-500'></span>
-              </span>
-              <span className='text-sm font-bold tracking-wide'>
-                {selectedIds.length}{' '}
-                <span className='text-zinc-400 font-medium'>Terpilih</span>
-              </span>
-            </div>
-
-            <button
-              onClick={() => setSelectedIds(galleryList.map((g) => g.id))}
-              className='text-xs font-bold text-zinc-400 hover:text-white transition-colors px-2'>
-              Pilih Semua
-            </button>
-
-            <button
-              onClick={handleBulkDelete}
-              className='flex items-center text-xs font-bold bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-full transition-colors ml-2'>
-              <Trash2 className='w-3.5 h-3.5 mr-1.5' /> Hapus
-            </button>
-
-            <button
-              onClick={() => setSelectedIds([])}
-              className='ml-2 p-2 bg-zinc-800 text-zinc-400 rounded-full hover:bg-zinc-700 hover:text-white transition-colors'>
-              <X className='w-4 h-4' />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <motion.div
         initial={{ y: -50, opacity: 0 }}
@@ -276,23 +214,18 @@ export default function EditorGaleri() {
         animate={{ opacity: 1 }}
         className='bg-gray-50 -mx-4 md:-mx-8 px-4 md:px-8 py-8 min-h-screen relative z-10'>
         {/* ==========================================
-            PEMBUNGKUS COMPONENT GALERI
+            PEMBUNGKUS COMPONENT GALERI YANG SUDAH TERHUBUNG
             ========================================== */}
-        <div className={isSelectionMode ? 'select-none' : ''}>
-          <GaleriKegiatan
-            data={form}
-            galleryList={galleryList}
-            isEditor={true}
-            onTextChange={handleTextChange}
-            onItemUpdate={handleItemUpdate}
-            onItemDelete={handleItemDelete}
-            onImageUpload={handleImageUpload}
-            // PROPS BARU UNTUK MULTI-SELECT DI DALAM GaleriKegiatan
-            selectedIds={selectedIds}
-            onToggleSelect={toggleSelect}
-            isSelectionMode={isSelectionMode}
-          />
-        </div>
+        <GaleriKegiatan
+          data={form}
+          galleryList={galleryList}
+          isEditor={true}
+          onTextChange={handleTextChange}
+          onItemUpdate={handleItemUpdate}
+          onItemDelete={handleItemDelete}
+          onImageUpload={handleImageUpload}
+          onBulkDelete={handleBulkDelete} // <-- INI DIA PENGHUBUNGNYA! 🚀
+        />
       </motion.div>
     </div>
   );
