@@ -503,20 +503,29 @@ export default function HeroBeranda({
   const ziswafDataView = isEditor ? 0 : safeActiveIdx % 3;
   const viewRolling2 = isEditor ? 0 : safeFinanceIdx % 2;
 
-  // ================= GALERI SLIDER =================
+  // ================= GALERI SLIDER (VERSI JSON PENGATURAN WEB) =================
   const [realGaleri, setRealGaleri] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchGaleri = async () => {
-      // Menarik data langsung dari tabel 'galeri' terbaru
+      // Kita ambil dari 'pengaturan_web' lagi, tapi dengan filter kunci 'galeri_data'
       const { data, error } = await supabase
-        .from('galeri')
-        .select('*')
-        .order('tanggal', { ascending: false }) // Urutkan dari yang terbaru
-        .limit(8); // Ambil 8 foto terbaru saja agar beranda ringan
+        .from('pengaturan_web')
+        .select('nilai')
+        .eq('kunci', 'galeri_data')
+        .single();
 
-      if (!error && data) {
-        setRealGaleri(data);
+      if (!error && data?.nilai) {
+        try {
+          // Karena formatnya JSON String di database, wajib di-parse
+          const parsedData = JSON.parse(data.nilai);
+          // Ambil 8 data terbaru saja agar marquee tidak terlalu berat
+          setRealGaleri(
+            Array.isArray(parsedData) ? parsedData.slice(0, 8) : [],
+          );
+        } catch (e) {
+          console.error('Gagal parse JSON galeri:', e);
+        }
       }
     };
     fetchGaleri();
@@ -546,20 +555,22 @@ export default function HeroBeranda({
   const direction = useRef(-1);
   const baseSpeed = useRef(1);
   const [isPaused, setIsPaused] = useState(false);
-  const [dragConstraints, setDragConstraints] = useState({
-    right: 0,
-    left: -9999,
-  });
-
   useEffect(() => {
-    if (containerRef.current && contentRef.current)
-      setDragConstraints({
-        right: 0,
-        left: -(
-          contentRef.current.scrollWidth - containerRef.current.offsetWidth
-        ),
-      });
-  }, [displayGaleri.length]);
+    // Pengintai ini akan mengeksekusi teleportasi SETIAP SAAT posisi X berubah
+    const unsubscribe = x.on('change', (latest) => {
+      if (!contentRef.current) return;
+      const halfWidth = contentRef.current.scrollWidth / 2;
+
+      // Teleportasi tak kasat mata
+      if (latest <= -halfWidth) {
+        x.set(latest + halfWidth);
+      } else if (latest > 0) {
+        x.set(latest - halfWidth);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [x]);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -585,16 +596,9 @@ export default function HeroBeranda({
   }, []);
 
   useAnimationFrame((t, delta) => {
-    if (isPaused || dragConstraints.left >= 0) return;
-    let nextX = x.get() + direction.current * baseSpeed.current * (delta / 16);
-    if (nextX <= dragConstraints.left) {
-      nextX = dragConstraints.left;
-      direction.current = 1;
-    } else if (nextX >= dragConstraints.right) {
-      nextX = dragConstraints.right;
-      direction.current = -1;
-    }
-    x.set(nextX);
+    if (isPaused) return; // Berhenti kalau ditahan mouse
+    // Jalan ke kiri terus
+    x.set(x.get() + direction.current * baseSpeed.current * (delta / 16));
   });
 
   return (
@@ -1865,17 +1869,16 @@ export default function HeroBeranda({
           <motion.div
             ref={contentRef}
             drag='x'
-            dragConstraints={dragConstraints}
-            dragElastic={0}
+            dragElastic={0} // Bebaskan tarikan (tanpa karet perlawanan)
             style={{ x }}
             onDragStart={() => setIsPaused(true)}
             onDragEnd={() => setTimeout(() => setIsPaused(false), 2500)}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setTimeout(() => setIsPaused(false), 2500)}
-            className='flex gap-4 w-max'>
+            className='flex w-max gap-4'>
             {infiniteGaleri.map((item, idx) => {
-              // LOGIKA BARU: Ambil gambar pertama jika formatnya array (multi-image),
-              // atau ambil gambar_url biasa, atau gunakan gambar default.
+              // LOGIKA: Ambil foto pertama dari array gambar_urls
+              // Jika kosong, baru lari ke gambar_url (string)
               const coverImage =
                 item.gambar_urls && item.gambar_urls.length > 0
                   ? item.gambar_urls[0]
