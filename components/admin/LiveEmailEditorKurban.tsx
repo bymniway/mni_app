@@ -268,11 +268,66 @@ export default function LiveEmailEditorKurban({
             Sapi Urunan Premium | TRX-998877
           </p>
         </div>
+
+        {/* --- TOMBOL KONFIRMASI (NEW) --- */}
+        <div className='relative z-10'>
+          {isEditor ? (
+            <div className='flex flex-col gap-3 p-4 bg-red-50/50 border border-dashed border-red-300 rounded-2xl text-left'>
+              <div>
+                <label className='text-[10px] font-bold text-red-800 uppercase tracking-widest mb-1.5 block'>
+                  Teks Tombol
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_text_MENUNGGU',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-red-200 rounded-xl p-3 text-sm font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-500 transition-all cursor-text`}>
+                  {form['email_kurban_btn_text_MENUNGGU'] || 'Konfirmasi'}
+                </span>
+              </div>
+              <div>
+                <label className='text-[10px] font-bold text-red-800 uppercase tracking-widest mb-1.5 block'>
+                  Link Tujuan (URL)
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_link_MENUNGGU',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-red-200 rounded-xl p-3 text-xs font-mono text-slate-600 outline-none focus:ring-2 focus:ring-red-500 transition-all cursor-text break-all`}>
+                  {form['email_kurban_btn_link_MENUNGGU'] ||
+                    'https://wa.me/6281234567890'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <a
+              href={
+                form['email_kurban_btn_link_MENUNGGU'] ||
+                'https://wa.me/6281234567890'
+              }
+              target='_blank'
+              rel='noopener noreferrer'
+              className='block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 text-sm text-center'>
+              {form['email_kurban_btn_text_MENUNGGU'] ||
+                'Konfirmasi via WhatsApp'}
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
 
-  // DESAIN 3: TAGIHAN PENUH BOOKING (Navy Blue)
+  // DESAIN 3: TAGIHAN PENUH BOOKING (Navy Blue) + BUTTON CTA
   const renderTagihan = () => (
     <div className='bg-white rounded-2xl shadow-2xl overflow-hidden border border-blue-800 font-sans max-w-[500px] mx-auto relative'>
       <div className='bg-blue-900 p-8 text-center text-white relative z-10'>
@@ -322,7 +377,7 @@ export default function LiveEmailEditorKurban({
           </p>
         </div>
 
-        <div className='flex items-start gap-3 bg-red-50 text-red-800 p-5 rounded-2xl text-left relative z-10'>
+        <div className='flex items-start gap-3 bg-red-50 text-red-800 p-5 rounded-2xl text-left relative z-10 mb-8'>
           <AlertTriangle className='w-5 h-5 shrink-0 mt-0.5' />
           <span
             contentEditable={isEditor}
@@ -338,6 +393,62 @@ export default function LiveEmailEditorKurban({
             {form['email_kurban_msg_utama_TAGIHAN'] ||
               'Mohon segera lakukan transfer dan konfirmasi ke admin agar hewan kurban Anda dapat kami kunci (lock).'}
           </span>
+        </div>
+
+        {/* --- TOMBOL KONFIRMASI (NEW) --- */}
+        <div className='relative z-10'>
+          {isEditor ? (
+            <div className='flex flex-col gap-3 p-4 bg-blue-50/50 border border-dashed border-blue-300 rounded-2xl text-left'>
+              <div>
+                <label className='text-[10px] font-bold text-blue-800 uppercase tracking-widest mb-1.5 block'>
+                  Teks Tombol
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_text_TAGIHAN',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-blue-200 rounded-xl p-3 text-sm font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-text`}>
+                  {form['email_kurban_btn_text_TAGIHAN'] ||
+                    'Konfirmasi via WhatsApp'}
+                </span>
+              </div>
+              <div>
+                <label className='text-[10px] font-bold text-blue-800 uppercase tracking-widest mb-1.5 block'>
+                  Link Tujuan (URL)
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_link_TAGIHAN',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-blue-200 rounded-xl p-3 text-xs font-mono text-slate-600 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-text break-all`}>
+                  {form['email_kurban_btn_link_TAGIHAN'] ||
+                    'https://wa.me/6281234567890'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <a
+              href={
+                form['email_kurban_btn_link_TAGIHAN'] ||
+                'https://wa.me/6281234567890'
+              }
+              target='_blank'
+              rel='noopener noreferrer'
+              className='block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 text-sm text-center'>
+              {form['email_kurban_btn_text_TAGIHAN'] ||
+                'Konfirmasi via WhatsApp'}
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -394,11 +505,66 @@ export default function LiveEmailEditorKurban({
             Sapi Urunan Premium | TRX-998877
           </p>
         </div>
+
+        {/* --- TOMBOL KONFIRMASI (NEW) --- */}
+        <div className='relative z-10'>
+          {isEditor ? (
+            <div className='flex flex-col gap-3 p-4 bg-red-50/50 border border-dashed border-red-300 rounded-2xl text-left'>
+              <div>
+                <label className='text-[10px] font-bold text-red-800 uppercase tracking-widest mb-1.5 block'>
+                  Teks Tombol
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_text_MENUNGGU',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-red-200 rounded-xl p-3 text-sm font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-500 transition-all cursor-text`}>
+                  {form['email_kurban_btn_text_MENUNGGU'] || 'Konfirmasi'}
+                </span>
+              </div>
+              <div>
+                <label className='text-[10px] font-bold text-red-800 uppercase tracking-widest mb-1.5 block'>
+                  Link Tujuan (URL)
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_link_MENUNGGU',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-red-200 rounded-xl p-3 text-xs font-mono text-slate-600 outline-none focus:ring-2 focus:ring-red-500 transition-all cursor-text break-all`}>
+                  {form['email_kurban_btn_link_MENUNGGU'] ||
+                    'https://wa.me/6281234567890'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <a
+              href={
+                form['email_kurban_btn_link_MENUNGGU'] ||
+                'https://wa.me/6281234567890'
+              }
+              target='_blank'
+              rel='noopener noreferrer'
+              className='block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 text-sm text-center'>
+              {form['email_kurban_btn_text_MENUNGGU'] ||
+                'Konfirmasi via WhatsApp'}
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
 
-  // DESAIN 5: DITOLAK (Red)
+  // DESAIN 5: DITOLAK (Red) + BUTTON CTA
   const renderDitolak = () => (
     <div className='bg-white rounded-2xl shadow-2xl overflow-hidden border border-red-200 font-sans max-w-[500px] mx-auto relative'>
       <div className='bg-red-50 p-8 text-center border-b border-red-100 relative z-10'>
@@ -447,7 +613,7 @@ export default function LiveEmailEditorKurban({
           </p>
         </div>
 
-        <div className='bg-teal-50 border border-teal-100 p-5 rounded-2xl text-center relative z-10'>
+        <div className='bg-teal-50 border border-teal-100 p-5 rounded-2xl text-center relative z-10 mb-8'>
           <span
             contentEditable={isEditor}
             suppressContentEditableWarning
@@ -462,6 +628,62 @@ export default function LiveEmailEditorKurban({
             {form['email_kurban_msg_hubungi_DITOLAK'] ||
               'Silahkan hubungi admin melalui WhatsApp untuk mengirimkan ulang bukti transfer atau konfirmasi manual.'}
           </span>
+        </div>
+
+        {/* --- TOMBOL KONFIRMASI (NEW) --- */}
+        <div className='relative z-10'>
+          {isEditor ? (
+            <div className='flex flex-col gap-3 p-4 bg-red-50/50 border border-dashed border-red-300 rounded-2xl text-left'>
+              <div>
+                <label className='text-[10px] font-bold text-red-800 uppercase tracking-widest mb-1.5 block'>
+                  Teks Tombol
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_text_DITOLAK',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-red-200 rounded-xl p-3 text-sm font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-500 transition-all cursor-text`}>
+                  {form['email_kurban_btn_text_DITOLAK'] ||
+                    'Konfirmasi via WhatsApp'}
+                </span>
+              </div>
+              <div>
+                <label className='text-[10px] font-bold text-red-800 uppercase tracking-widest mb-1.5 block'>
+                  Link Tujuan (URL)
+                </label>
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onTextChange(
+                      'email_kurban_btn_link_DITOLAK',
+                      e.currentTarget.textContent,
+                    )
+                  }
+                  className={`block w-full bg-white border border-red-200 rounded-xl p-3 text-xs font-mono text-slate-600 outline-none focus:ring-2 focus:ring-red-500 transition-all cursor-text break-all`}>
+                  {form['email_kurban_btn_link_DITOLAK'] ||
+                    'https://wa.me/6281234567890'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <a
+              href={
+                form['email_kurban_btn_link_DITOLAK'] ||
+                'https://wa.me/6281234567890'
+              }
+              target='_blank'
+              rel='noopener noreferrer'
+              className='block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 text-sm text-center'>
+              {form['email_kurban_btn_text_DITOLAK'] ||
+                'Konfirmasi via WhatsApp'}
+            </a>
+          )}
         </div>
       </div>
     </div>

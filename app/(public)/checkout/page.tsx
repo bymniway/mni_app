@@ -939,6 +939,10 @@ function CheckoutForm() {
                             className='w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-mni-primary/20 focus:border-mni-primary outline-none transition-all text-sm font-medium'
                           />
                         </div>
+                        <p className='text-[10px] font-medium text-gray-400 mt-1.5 leading-snug'>
+                          * Jika sapi utuh, pisahkan antar nama dengan tanda
+                          koma (Contoh: Fulan, Budi, Siti).
+                        </p>
                       </div>
 
                       {isUrunan ? (
@@ -969,7 +973,7 @@ function CheckoutForm() {
                       ) : (
                         <div>
                           <label className='block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide'>
-                            Request 1/3 Bagian Daging (Opsional)
+                            1/3 Bagian Daging (Kurban Sunah)
                           </label>
                           <div className='relative'>
                             <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
@@ -985,7 +989,7 @@ function CheckoutForm() {
                                   e.target.value,
                                 )
                               }
-                              placeholder='Contoh: Paha belakang / Iga / Kosongkan'
+                              placeholder='Contoh: Paha belakang / Iga. Kosongkan jika kurban wajib'
                               className='w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-mni-primary/20 focus:border-mni-primary outline-none transition-all text-sm font-medium'
                             />
                           </div>
@@ -1191,7 +1195,7 @@ function CheckoutForm() {
               ) : (
                 <div className='bg-gray-50 p-5 rounded-xl border border-gray-200 text-gray-600 text-sm text-center font-medium'>
                   Bukti transfer tidak diperlukan saat ini. Tagihan pembayaran
-                  akan dikirimkan ke Email & WhatsApp Anda.
+                  akan dikirimkan ke Email anda setelah slot urunan penuh.
                 </div>
               )}
             </div>

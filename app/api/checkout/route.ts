@@ -154,6 +154,15 @@ export async function POST(request: Request) {
           'Mohon segera lakukan transfer dan konfirmasi ke admin agar hewan kurban Anda dapat kami kunci (lock).',
         );
 
+        const btnText = getVal(
+          'email_kurban_btn_text_TAGIHAN',
+          'Konfirmasi via WhatsApp',
+        );
+        const btnLink = getVal(
+          'email_kurban_btn_link_TAGIHAN',
+          'https://wa.me/6281234567890',
+        );
+
         return `
           <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a8a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             <tr>
@@ -177,6 +186,11 @@ export async function POST(request: Request) {
                 <div style="background-color: #fef2f2; color: #991b1b; padding: 20px; border-radius: 12px; text-align: left; font-size: 12px; line-height: 1.6; border: 1px solid #fecaca; position: relative; z-index: 2;">
                   <strong>⚠️ Perhatian:</strong> ${msgUtama}
                 </div>
+                <div style="margin-top: 30px; text-align: center; position: relative; z-index: 2;">
+                  <a href="${btnLink}" style="display: inline-block; background-color: #1e3a8a; color: #ffffff; font-weight: bold; text-decoration: none; padding: 16px 30px; border-radius: 12px; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    ${btnText}
+                  </a>
+                </div>
               </td>
             </tr>
           </table>
@@ -192,6 +206,11 @@ export async function POST(request: Request) {
           'email_kurban_intro_AWAL_BOOKING',
           'Alhamdulillah Bpk/Ibu/Sdr/i, slot hewan kurban Anda berhasil diamankan. Silakan segera lakukan pembayaran/DP agar pesanan dapat kami verifikasi sepenuhnya.',
         );
+        const btnText = getVal('email_ziswaf_btn_text_MENUNGGU', 'Cek Status');
+        const btnLink = getVal(
+          'email_ziswaf_btn_link_MENUNGGU',
+          'https://mni-app.vercel.app/kurban/status',
+        );
 
         return `
           <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #fde68a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
@@ -203,7 +222,6 @@ export async function POST(request: Request) {
             </tr>
             <tr>
               <td style="padding: 40px; text-align: center; position: relative;">
-                <div style="position: absolute; top: 20px; right: 30px; font-size: 80px; opacity: 0.03; line-height: 1;">🐄</div>
                 <p style="font-size: 14px; color: #334155; margin-bottom: 30px; line-height: 1.6; position: relative; z-index: 2;">Assalamu'alaikum <strong>${dataHtml.nama}</strong>. <br/>${intro}</p>
                 
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; margin-bottom: 10px; text-align: left; position: relative; z-index: 2;">
@@ -212,6 +230,11 @@ export async function POST(request: Request) {
                   <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
                     <p style="font-size: 12px; font-weight: 600; color: #64748b; margin: 0;">${dataHtml.hewanInfo} | ${dataHtml.kodeTrx}</p>
                   </div>
+                </div>
+                <div style="margin-top: 30px; text-align: center; position: relative; z-index: 2;">
+                  <a href="${btnLink}" style="display: inline-block; background-color: #fbbf24; color: #78350f; font-weight: bold; text-decoration: none; padding: 16px 30px; border-radius: 12px; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    ${btnText}
+                  </a>
                 </div>
               </td>
             </tr>
@@ -227,6 +250,11 @@ export async function POST(request: Request) {
       const intro = getVal(
         'email_kurban_intro_MENUNGGU',
         'Terima kasih telah mendaftar. Bukti pembayaran/DP Kurban Anda sedang ditinjau oleh panitia.',
+      );
+      const btnText = getVal('email_ziswaf_btn_text_MENUNGGU', 'Cek Status');
+      const btnLink = getVal(
+        'email_ziswaf_btn_link_MENUNGGU',
+        'https://mni-app.vercel.app/kurban/status',
       );
 
       return `
@@ -247,6 +275,11 @@ export async function POST(request: Request) {
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
                   <p style="font-size: 12px; font-weight: 600; color: #64748b; margin: 0;">${dataHtml.hewanInfo} | ${dataHtml.kodeTrx}</p>
                 </div>
+              </div>
+              <div style="margin-top: 30px; text-align: center; position: relative; z-index: 2;">
+                <a href="${btnLink}" style="display: inline-block; background-color: #fbbf24; color: #78350f; font-weight: bold; text-decoration: none; padding: 16px 30px; border-radius: 12px; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    ${btnText}
+                </a>
               </div>
             </td>
           </tr>

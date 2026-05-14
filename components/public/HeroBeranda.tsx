@@ -219,13 +219,14 @@ export default function HeroBeranda({
   }, [mediaList]);
 
   useEffect(() => {
+    if (isEditor) return;
     if (topMediaArticles.length > 0) {
       const interval = setInterval(() => {
         setFeaturedMediaIdx((prev) => (prev + 1) % topMediaArticles.length);
-      }, 6000);
+      }, 5000);
       return () => clearInterval(interval);
     }
-  }, [topMediaArticles]);
+  }, [topMediaArticles, isEditor]);
 
   const currentFeaturedMedia = topMediaArticles[featuredMediaIdx];
 
@@ -466,6 +467,7 @@ export default function HeroBeranda({
   }, []);
 
   useEffect(() => {
+    if (isEditor) return;
     if (isAnimationPaused) return;
     const intervalData = setInterval(
       () => setActiveIdx((prev) => prev + 1),
@@ -484,27 +486,37 @@ export default function HeroBeranda({
       clearInterval(intervalFinance);
       clearInterval(intervalQuote);
     };
-  }, [isAnimationPaused]);
+  }, [isAnimationPaused, isEditor]);
 
-  const currentKurbanText = kurbanInfoTexts[activeIdx % kurbanInfoTexts.length];
-  const currentZiswafText = ziswafInfoTexts[activeIdx % ziswafInfoTexts.length];
-  const kurbanDataView = activeIdx % 2;
-  const ziswafDataView = activeIdx % 3;
-  const viewRolling2 = financeIdx % 2;
+  // 1. BEKUKAN INDEX SAAT EDIT: Jika mode edit, paksa index selalu 0 (diam di tempat)
+  const safeActiveIdx = isEditor ? 0 : activeIdx;
+  const safeFinanceIdx = isEditor ? 0 : financeIdx;
+
+  // 2. TEKS BERHENTI BERUBAH: Gunakan index yang sudah dibekukan
+  const currentKurbanText =
+    kurbanInfoTexts[safeActiveIdx % (kurbanInfoTexts?.length || 1)];
+  const currentZiswafText =
+    ziswafInfoTexts[safeActiveIdx % (ziswafInfoTexts?.length || 1)];
+
+  // 3. CAROUSEL TENGAH BERHENTI ROTASI: Paksa selalu nampil data ke-0 saat diedit
+  const kurbanDataView = isEditor ? 0 : safeActiveIdx % 2;
+  const ziswafDataView = isEditor ? 0 : safeActiveIdx % 3;
+  const viewRolling2 = isEditor ? 0 : safeFinanceIdx % 2;
 
   // ================= GALERI SLIDER =================
   const [realGaleri, setRealGaleri] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchGaleri = async () => {
-      const { data } = await supabase
-        .from('pengaturan_web')
-        .select('nilai')
-        .eq('kunci', 'galeri_data')
-        .single();
-      if (data && data.nilai) {
-        try {
-          setRealGaleri(JSON.parse(data.nilai));
-        } catch (e) {}
+      // Menarik data langsung dari tabel 'galeri' terbaru
+      const { data, error } = await supabase
+        .from('galeri')
+        .select('*')
+        .order('tanggal', { ascending: false }) // Urutkan dari yang terbaru
+        .limit(8); // Ambil 8 foto terbaru saja agar beranda ringan
+
+      if (!error && data) {
+        setRealGaleri(data);
       }
     };
     fetchGaleri();
@@ -772,8 +784,8 @@ export default function HeroBeranda({
         <motion.div
           variants={fadeInUp}
           className='lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4'
-          onMouseEnter={() => isEditor && setIsAnimationPaused(true)}
-          onMouseLeave={() => isEditor && setIsAnimationPaused(false)}>
+          onMouseEnter={() => !isEditor && setIsAnimationPaused(true)}
+          onMouseLeave={() => !isEditor && setIsAnimationPaused(false)}>
           <div className='bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200 p-6 rounded-3xl relative overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300'>
             <div className='absolute -right-8 -bottom-8 opacity-5 group-hover:scale-125 transition-transform duration-700 pointer-events-none'>
               <Wallet className='w-40 h-40 text-green-900' />
@@ -813,47 +825,55 @@ export default function HeroBeranda({
                   </span>
                 </p>
               </div>
-              <div className='h-[60px] relative overflow-hidden border-t border-green-300/40 pt-2'>
-                <AnimatePresence>
-                  <motion.div
-                    key={viewRolling2}
-                    variants={wheelVariants}
-                    initial='initial'
-                    animate='animate'
-                    exit='exit'
-                    className='absolute top-2 left-0 right-0 flex flex-col justify-start'>
-                    <h3 className='text-2xl font-bold text-green-950 tracking-tight'>
-                      <span
-                        contentEditable={isEditor}
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          isEditor &&
-                          onTextChange(
-                            kasOpsData[viewRolling2].keyV,
-                            e.currentTarget.textContent,
-                          )
-                        }
-                        className={editableClassDark}>
-                        {kasOpsData[viewRolling2].val}
-                      </span>
-                    </h3>
-                    <p className='text-[10px] font-bold text-green-700/80 mt-0.5 uppercase tracking-wider'>
-                      <span
-                        contentEditable={isEditor}
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          isEditor &&
-                          onTextChange(
-                            kasOpsData[viewRolling2].keyL,
-                            e.currentTarget.textContent,
-                          )
-                        }
-                        className={editableClassDark}>
-                        {kasOpsData[viewRolling2].label}
-                      </span>
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
+              <div
+                className={`relative border-t border-green-300/40 pt-2 ${isEditor ? 'h-[75px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col gap-3' : 'h-[60px] overflow-hidden'}`}>
+                {isEditor ? (
+                  kasOpsData.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className='flex flex-col justify-start bg-green-500/10 p-2 rounded-lg shrink-0'>
+                      <h3 className='text-lg font-bold text-green-950 tracking-tight'>
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) =>
+                            onTextChange(item.keyV, e.currentTarget.textContent)
+                          }
+                          className={editableClassDark}>
+                          {item.val}
+                        </span>
+                      </h3>
+                      <p className='text-[10px] font-bold text-green-700/80 uppercase tracking-wider'>
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) =>
+                            onTextChange(item.keyL, e.currentTarget.textContent)
+                          }
+                          className={editableClassDark}>
+                          {item.label}
+                        </span>
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <AnimatePresence>
+                    <motion.div
+                      key={viewRolling2}
+                      variants={wheelVariants}
+                      initial='initial'
+                      animate='animate'
+                      exit='exit'
+                      className='absolute top-2 left-0 right-0 flex flex-col justify-start'>
+                      <h3 className='text-2xl font-bold text-green-950 tracking-tight'>
+                        <span>{kasOpsData[viewRolling2].val}</span>
+                      </h3>
+                      <p className='text-[10px] font-bold text-green-700/80 mt-0.5 uppercase tracking-wider'>
+                        <span>{kasOpsData[viewRolling2].label}</span>
+                      </p>
+                    </motion.div>
+                  </AnimatePresence>
+                )}
               </div>
             </div>
           </div>
@@ -903,47 +923,55 @@ export default function HeroBeranda({
                   </span>
                 </p>
               </div>
-              <div className='h-[60px] relative overflow-hidden border-t border-blue-300/40 pt-2'>
-                <AnimatePresence>
-                  <motion.div
-                    key={viewRolling2}
-                    variants={wheelVariants}
-                    initial='initial'
-                    animate='animate'
-                    exit='exit'
-                    className='absolute top-2 left-0 right-0 flex flex-col justify-start'>
-                    <h3 className='text-2xl font-bold text-blue-950 tracking-tight'>
-                      <span
-                        contentEditable={isEditor}
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          isEditor &&
-                          onTextChange(
-                            kasYatimData[viewRolling2].keyV,
-                            e.currentTarget.textContent,
-                          )
-                        }
-                        className={editableClassDark}>
-                        {kasYatimData[viewRolling2].val}
-                      </span>
-                    </h3>
-                    <p className='text-[10px] font-bold text-blue-700/80 mt-0.5 uppercase tracking-wider'>
-                      <span
-                        contentEditable={isEditor}
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          isEditor &&
-                          onTextChange(
-                            kasYatimData[viewRolling2].keyL,
-                            e.currentTarget.textContent,
-                          )
-                        }
-                        className={editableClassDark}>
-                        {kasYatimData[viewRolling2].label}
-                      </span>
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
+              <div
+                className={`relative border-t border-blue-300/40 pt-2 ${isEditor ? 'h-[75px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col gap-3' : 'h-[60px] overflow-hidden'}`}>
+                {isEditor ? (
+                  kasYatimData.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className='flex flex-col justify-start bg-blue-500/10 p-2 rounded-lg shrink-0'>
+                      <h3 className='text-lg font-bold text-blue-950 tracking-tight'>
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) =>
+                            onTextChange(item.keyV, e.currentTarget.textContent)
+                          }
+                          className={editableClassDark}>
+                          {item.val}
+                        </span>
+                      </h3>
+                      <p className='text-[10px] font-bold text-blue-700/80 uppercase tracking-wider'>
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) =>
+                            onTextChange(item.keyL, e.currentTarget.textContent)
+                          }
+                          className={editableClassDark}>
+                          {item.label}
+                        </span>
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <AnimatePresence>
+                    <motion.div
+                      key={viewRolling2}
+                      variants={wheelVariants}
+                      initial='initial'
+                      animate='animate'
+                      exit='exit'
+                      className='absolute top-2 left-0 right-0 flex flex-col justify-start'>
+                      <h3 className='text-2xl font-bold text-blue-950 tracking-tight'>
+                        <span>{kasYatimData[viewRolling2].val}</span>
+                      </h3>
+                      <p className='text-[10px] font-bold text-blue-700/80 mt-0.5 uppercase tracking-wider'>
+                        <span>{kasYatimData[viewRolling2].label}</span>
+                      </p>
+                    </motion.div>
+                  </AnimatePresence>
+                )}
               </div>
             </div>
           </div>
@@ -1091,8 +1119,8 @@ export default function HeroBeranda({
           <motion.div
             variants={fadeInUp}
             className='flex flex-col gap-6'
-            onMouseEnter={() => isEditor && setIsAnimationPaused(true)}
-            onMouseLeave={() => isEditor && setIsAnimationPaused(false)}>
+            onMouseEnter={() => !isEditor && setIsAnimationPaused(true)}
+            onMouseLeave={() => !isEditor && setIsAnimationPaused(false)}>
             {/* CARD KURBAN */}
             <CardWrapper
               href='/kurban'
@@ -1179,31 +1207,42 @@ export default function HeroBeranda({
                   </AnimatePresence>
                 </div>
 
-                <div className='min-h-[2.5rem] flex items-start overflow-hidden border-t border-green-700/50 pt-2.5 mt-1'>
-                  <AnimatePresence mode='wait'>
-                    <motion.p
-                      key={activeIdx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.5, ease: 'easeInOut' }}
-                      className='text-green-100/90 text-xs font-medium flex items-start w-full leading-snug'>
-                      <ArrowRight className='w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-green-400' />{' '}
-                      <span
-                        contentEditable={isEditor}
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          isEditor &&
-                          onTextChange(
-                            `kurban_info_${activeIdx % kurbanInfoTexts.length}`,
-                            e.currentTarget.textContent,
-                          )
-                        }
-                        className={editableClass}>
-                        {currentKurbanText}
-                      </span>
-                    </motion.p>
-                  </AnimatePresence>
+                <div
+                  className={`border-t border-green-700/50 pt-2.5 mt-1 ${isEditor ? 'flex flex-col gap-2 h-[80px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden' : 'min-h-[2.5rem] flex items-start overflow-hidden'}`}>
+                  {isEditor ? (
+                    kurbanInfoTexts.map((text, idx) => (
+                      <p
+                        key={idx}
+                        className='text-green-100/90 text-xs font-medium flex items-start w-full leading-snug bg-green-900/50 p-1.5 rounded'>
+                        <ArrowRight className='w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-green-400' />
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) =>
+                            onTextChange(
+                              `kurban_info_${idx}`,
+                              e.currentTarget.textContent,
+                            )
+                          }
+                          className={editableClass}>
+                          {text}
+                        </span>
+                      </p>
+                    ))
+                  ) : (
+                    <AnimatePresence mode='wait'>
+                      <motion.p
+                        key={activeIdx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.5, ease: 'easeInOut' }}
+                        className='text-green-100/90 text-xs font-medium flex items-start w-full leading-snug'>
+                        <ArrowRight className='w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-green-400' />
+                        <span>{currentKurbanText}</span>
+                      </motion.p>
+                    </AnimatePresence>
+                  )}
                 </div>
               </div>
             </CardWrapper>
@@ -1320,32 +1359,42 @@ export default function HeroBeranda({
                     )}
                   </AnimatePresence>
                 </div>
-
-                <div className='min-h-[2.5rem] flex items-start overflow-hidden border-t border-orange-500/50 pt-2.5 mt-1'>
-                  <AnimatePresence mode='wait'>
-                    <motion.p
-                      key={activeIdx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.5, ease: 'easeInOut' }}
-                      className='text-orange-50/90 text-xs font-medium flex items-start w-full leading-snug'>
-                      <ArrowRight className='w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-orange-300' />{' '}
-                      <span
-                        contentEditable={isEditor}
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          isEditor &&
-                          onTextChange(
-                            `ziswaf_info_${activeIdx % ziswafInfoTexts.length}`,
-                            e.currentTarget.textContent,
-                          )
-                        }
-                        className={editableClass}>
-                        {currentZiswafText}
-                      </span>
-                    </motion.p>
-                  </AnimatePresence>
+                <div
+                  className={`border-t border-orange-500/50 pt-2.5 mt-1 ${isEditor ? 'flex flex-col gap-2 h-[80px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden' : 'min-h-[2.5rem] flex items-start overflow-hidden'}`}>
+                  {isEditor ? (
+                    ziswafInfoTexts.map((text, idx) => (
+                      <p
+                        key={idx}
+                        className='text-orange-50/90 text-xs font-medium flex items-start w-full leading-snug bg-orange-900/50 p-1.5 rounded'>
+                        <ArrowRight className='w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-orange-300' />
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) =>
+                            onTextChange(
+                              `ziswaf_info_${idx}`,
+                              e.currentTarget.textContent,
+                            )
+                          }
+                          className={editableClass}>
+                          {text}
+                        </span>
+                      </p>
+                    ))
+                  ) : (
+                    <AnimatePresence mode='wait'>
+                      <motion.p
+                        key={activeIdx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.5, ease: 'easeInOut' }}
+                        className='text-orange-50/90 text-xs font-medium flex items-start w-full leading-snug'>
+                        <ArrowRight className='w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-orange-300' />
+                        <span>{currentZiswafText}</span>
+                      </motion.p>
+                    </AnimatePresence>
+                  )}
                 </div>
               </div>
             </CardWrapper>
@@ -1536,57 +1585,63 @@ export default function HeroBeranda({
         variants={fadeInUp}
         className='max-w-4xl mx-auto px-4 md:px-10 mt-16 md:mt-24 text-center'>
         <div
-          className='h-[200px] flex items-center justify-center relative'
-          onMouseEnter={() => isEditor && setIsAnimationPaused(true)}
-          onMouseLeave={() => isEditor && setIsAnimationPaused(false)}>
-          <AnimatePresence mode='wait'>
-            {data?.quotes && data.quotes.length > 0 && (
-              <motion.div
-                key={quoteIdx % data.quotes.length}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.8 }}
-                className='absolute flex flex-col items-center w-full'>
-                <Quote className='w-10 h-10 text-mni-primary/20 mx-auto mb-4 transform -scale-x-100' />
-                <h3 className='text-xl md:text-2xl font-bold text-mni-text leading-relaxed tracking-tight max-w-3xl'>
+          className={`relative ${isEditor ? 'h-[180px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col gap-6 py-2' : 'h-[200px] flex items-center justify-center'}`}
+          onMouseEnter={() => !isEditor && setIsAnimationPaused(true)}
+          onMouseLeave={() => !isEditor && setIsAnimationPaused(false)}>
+          {isEditor ? (
+            data?.quotes?.map((q: any) => (
+              <div
+                key={q.id}
+                className='flex flex-col items-center w-full bg-gray-50/50 p-6 rounded-3xl border border-gray-100 shrink-0'>
+                <Quote className='w-8 h-8 text-mni-primary/20 mx-auto mb-2 transform -scale-x-100' />
+                <h3 className='text-lg font-bold text-mni-text leading-relaxed tracking-tight max-w-3xl text-center'>
                   "
                   <span
-                    contentEditable={isEditor}
+                    contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) =>
-                      isEditor &&
-                      onQuoteUpdate(
-                        data.quotes[quoteIdx % data.quotes.length].id,
-                        'text',
-                        e.currentTarget.textContent,
-                      )
+                      onQuoteUpdate(q.id, 'text', e.currentTarget.textContent)
                     }
                     className={editableClassDark}>
-                    {data.quotes[quoteIdx % data.quotes.length].text}
+                    {q.text}
                   </span>
                   "
                 </h3>
-                <div className='w-12 h-1 bg-mni-accent mx-auto mt-5 rounded-full mb-3'></div>
-                <p className='text-sm font-bold text-mni-muted tracking-widest uppercase'>
+                <p className='text-xs font-bold text-mni-muted tracking-widest uppercase mt-4 text-center'>
                   <span
-                    contentEditable={isEditor}
+                    contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) =>
-                      isEditor &&
-                      onQuoteUpdate(
-                        data.quotes[quoteIdx % data.quotes.length].id,
-                        'source',
-                        e.currentTarget.textContent,
-                      )
+                      onQuoteUpdate(q.id, 'source', e.currentTarget.textContent)
                     }
                     className={editableClassDark}>
-                    {data.quotes[quoteIdx % data.quotes.length].source}
+                    {q.source}
                   </span>
                 </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            ))
+          ) : (
+            <AnimatePresence mode='wait'>
+              {data?.quotes && data.quotes.length > 0 && (
+                <motion.div
+                  key={quoteIdx % data.quotes.length}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.8 }}
+                  className='absolute flex flex-col items-center w-full'>
+                  <Quote className='w-10 h-10 text-mni-primary/20 mx-auto mb-4 transform -scale-x-100' />
+                  <h3 className='text-xl md:text-2xl font-bold text-mni-text leading-relaxed tracking-tight max-w-3xl'>
+                    "{data.quotes[quoteIdx % data.quotes.length].text}"
+                  </h3>
+                  <div className='w-12 h-1 bg-mni-accent mx-auto mt-5 rounded-full mb-3'></div>
+                  <p className='text-sm font-bold text-mni-muted tracking-widest uppercase'>
+                    {data.quotes[quoteIdx % data.quotes.length].source}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
       </motion.section>
 
@@ -1818,21 +1873,30 @@ export default function HeroBeranda({
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setTimeout(() => setIsPaused(false), 2500)}
             className='flex gap-4 w-max'>
-            {infiniteGaleri.map((item, idx) => (
-              <div
-                key={idx}
-                className='shrink-0 w-[280px] md:w-[350px] aspect-[4/3] rounded-3xl overflow-hidden relative group border border-gray-100 shadow-sm'>
-                <img
-                  src={
-                    item.gambar_url ||
-                    'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&q=80'
-                  }
-                  alt='Galeri'
-                  draggable={false}
-                  className='absolute inset-0 w-full h-full object-cover pointer-events-none'
-                />
-              </div>
-            ))}
+            {infiniteGaleri.map((item, idx) => {
+              // LOGIKA BARU: Ambil gambar pertama jika formatnya array (multi-image),
+              // atau ambil gambar_url biasa, atau gunakan gambar default.
+              const coverImage =
+                item.gambar_urls && item.gambar_urls.length > 0
+                  ? item.gambar_urls[0]
+                  : item.gambar_url;
+
+              return (
+                <div
+                  key={idx}
+                  className='shrink-0 w-[280px] md:w-[350px] aspect-[4/3] rounded-3xl overflow-hidden relative group border border-gray-100 shadow-sm'>
+                  <img
+                    src={
+                      coverImage ||
+                      'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&q=80'
+                    }
+                    alt={item.judul || 'Galeri'}
+                    draggable={false}
+                    className='absolute inset-0 w-full h-full object-cover pointer-events-none'
+                  />
+                </div>
+              );
+            })}
           </motion.div>
         </div>
       </motion.section>

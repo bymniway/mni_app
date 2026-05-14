@@ -246,24 +246,59 @@ export default function RiwayatPesananKurban() {
       { align: 'center' },
     );
 
+    // const tableBody = sortedData.map((p) => {
+    //   const isSapi = p.hewan?.jenis?.toLowerCase().includes('sapi');
+    //   const isUrunan = p.hewan?.tipe?.toLowerCase().includes('urunan');
+    //   let colIdentitas = '';
+    //   if (isSapi && isUrunan) colIdentitas = p.hewan?.tipe || 'Sapi Urunan';
+    //   else colIdentitas = `${p.hewan?.tipe || ''} ${p.nama_mudhohi}`;
+
+    //   return [
+    //     colIdentitas,
+    //     p.alamat || '-',
+    //     p.nama_mudhohi,
+    //     p.bagian_sepertiga || 'Sedekah Semua',
+    //   ];
+    // });
+
     const tableBody = sortedData.map((p) => {
       const isSapi = p.hewan?.jenis?.toLowerCase().includes('sapi');
       const isUrunan = p.hewan?.tipe?.toLowerCase().includes('urunan');
+
+      const namaMudhohiRapih = p.nama_mudhohi
+        ? p.nama_mudhohi
+            .split(',')
+            .map((n: string) => n.trim())
+            .join('\n')
+        : '';
+
       let colIdentitas = '';
-      if (isSapi && isUrunan) colIdentitas = p.hewan?.tipe || 'Sapi Urunan';
-      else colIdentitas = `${p.hewan?.tipe || ''}+ ${p.nama_mudhohi}`;
+      if (isSapi && isUrunan) {
+        const jenis = p.hewan?.jenis || '';
+        const tipe = p.hewan?.tipe || '';
+        colIdentitas = `${jenis} ${tipe}`.trim() || 'Sapi Urunan';
+      } else {
+        // MEKANISME BARU: Ambil nama depan saja
+        const namaUtama = p.nama_mudhohi ? p.nama_mudhohi.split(',')[0] : '';
+        const namaDepan = namaUtama.trim().split(' ')[0];
+        const jenisHewan = p.hewan?.jenis || '';
+        const tipeHewan = p.hewan?.tipe || '';
+
+        // Gabungkan: Jenis + Tipe + Nama Depan
+        colIdentitas = `${jenisHewan} ${tipeHewan} ${namaDepan}`.trim();
+      }
 
       return [
         colIdentitas,
+        namaMudhohiRapih,
         p.alamat || '-',
-        p.nama_mudhohi,
         p.bagian_sepertiga || 'Sedekah Semua',
       ];
     });
 
     autoTable(doc, {
       startY: 75,
-      head: [['Hewan Kurban', 'Alamat', 'Nama Mudhohi', 'Bagian 1/3']],
+      head: [['Hewan Kurban', 'Nama Mudhohi', 'Alamat', 'Bag. 1/3']],
       body: tableBody,
       theme: 'grid',
       headStyles: {
@@ -271,19 +306,19 @@ export default function RiwayatPesananKurban() {
         fillColor: [15, 118, 110],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        fontSize: 14,
+        fontSize: 11,
       },
       styles: {
         font: 'times',
         textColor: [0, 0, 0],
-        fontSize: 12,
+        fontSize: 11,
         cellPadding: 4,
       },
       columnStyles: {
         0: { cellWidth: 130, fontStyle: 'bold' },
-        1: { cellWidth: 'auto' },
-        2: { cellWidth: 150 },
-        3: { cellWidth: 100 },
+        1: { cellWidth: 200 },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 55 },
       },
     });
     doc.save(`Daftar_Jagal_MNI_Vertical_${new Date().getTime()}.pdf`);

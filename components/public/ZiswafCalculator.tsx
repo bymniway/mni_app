@@ -1959,9 +1959,6 @@ export default function ZiswafCalculator({
                         <option value='Santunan Anak Yatim'>
                           Santunan Anak Yatim & Dhuafa
                         </option>
-                        <option value='Pembangunan Masjid'>
-                          Pembangunan Masjid
-                        </option>
                       </select>
                     </div>
                   </motion.div>

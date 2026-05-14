@@ -69,6 +69,15 @@ export async function POST(request: Request) {
     );
     const ttd = getVal('email_kurban_ttd', 'PANITIA KURBAN MNI');
 
+    const btnTextDitolak = getVal(
+      'email_kurban_btn_text_DITOLAK',
+      'Konfirmasi via WhatsApp',
+    );
+    const btnLinkDitolak = getVal(
+      'email_kurban_btn_link_DITOLAK',
+      'https://wa.me/6281234567890',
+    );
+
     const formatRp = `Rp ${Number(totalBayar).toLocaleString('id-ID')}`;
 
     let htmlBody = '';
@@ -170,6 +179,12 @@ export async function POST(request: Request) {
               
               <div style="padding: 15px 20px; background-color: #f0fdfa; color: #0f766e; border-radius: 8px; font-size: 12px; font-weight: bold; border: 1px solid #ccfbf1; text-align: center; position: relative; z-index: 2;">
                 ${msgHubungi}
+              </div>
+
+              <div style="margin-top: 30px; text-align: center; position: relative; z-index: 2;">
+                <a href="${btnLinkDitolak}" style="display: inline-block; background-color: #b91c1c; color: #ffffff; font-weight: bold; text-decoration: none; padding: 16px 30px; border-radius: 12px; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                  ${btnTextDitolak}
+                </a>
               </div>
             </td>
           </tr>
