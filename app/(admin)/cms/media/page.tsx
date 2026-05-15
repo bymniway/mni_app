@@ -82,13 +82,14 @@ const RichTextEditor = ({
     insertOrderedList: false,
     fontName: '',
     formatBlock: '',
+    fontSize: '',
   });
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value || '';
     }
-  }, [value]);
+  }, [value, showSource]);
 
   const updateContent = () => {
     if (editorRef.current) onChange(editorRef.current.innerHTML);
@@ -101,6 +102,29 @@ const RichTextEditor = ({
   };
 
   const checkFormatting = () => {
+    // 1. Ambil nama font dari browser
+    let rawFontName = document.queryCommandValue('fontName') || '';
+    // 2. Bersihkan dari tanda kutip tunggal maupun ganda
+    let cleanFontName = rawFontName.replace(/['"]/g, '');
+
+    // RADAR UKURAN FONT DI POSISI KURSOR
+    let detectedFontSize = '';
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      let node = sel.anchorNode;
+      // Jika kursor tepat di atas teks murni (text node), ambil elemen pembungkusnya
+      if (node && node.nodeType === 3) {
+        node = node.parentNode;
+      }
+      if (node && node instanceof Element) {
+        const computedStyle = window.getComputedStyle(node);
+        // Hapus tulisan "px" agar cocok dengan angka di dropdown (misal: "16px" jadi "16")
+        // Gunakan Math.round agar pembacaan pixel stabil (tidak muncul 16.5 dll)
+        detectedFontSize = Math.round(
+          parseFloat(computedStyle.fontSize),
+        ).toString();
+      }
+    }
     setActiveFormat({
       bold: document.queryCommandState('bold'),
       italic: document.queryCommandState('italic'),
@@ -112,11 +136,11 @@ const RichTextEditor = ({
       justifyFull: document.queryCommandState('justifyFull'),
       insertUnorderedList: document.queryCommandState('insertUnorderedList'),
       insertOrderedList: document.queryCommandState('insertOrderedList'),
-      fontName: document.queryCommandValue('fontName'),
+      fontName: cleanFontName,
       formatBlock: document.queryCommandValue('formatBlock'),
+      fontSize: detectedFontSize,
     });
 
-    const sel = window.getSelection();
     let inTable = false;
     if (sel && sel.rangeCount) {
       let node = sel.anchorNode;
@@ -189,12 +213,12 @@ const RichTextEditor = ({
   const handleArabic = () => {
     const sel = window.getSelection();
     const text = sel?.toString() || 'Tulis Arab di sini...';
-    const html = `<div class="arabic" dir="rtl" style="font-size: 2rem; line-height: 2.2; text-align: right; background: #f8fafc; padding: 1rem; border-right: 4px solid #0f766e; border-radius: 0.5rem; margin: 1rem 0; color: #0f172a; font-family: 'Amiri', serif;">${text}</div><br/>`;
+    const html = `<div class="arabic" dir="rtl" style="font-size: 2rem; line-height: 2.2; text-align: right; background: #f8fafc; padding: 1rem; border-right: 4px solid #0f766e; border-radius: 0.5rem; margin: 1rem 0; color: #0f172a; font-family: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', serif;">${text}</div><br/>`;
     execCmd('insertHTML', html);
   };
 
   const insertBasmalah = () => {
-    const html = `<div class="arabic" dir="rtl" style="font-size: 2.5rem; text-align: center; margin: 2rem 0; font-weight: bold; color: #0f766e; font-family: 'Amiri', serif;">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div><br/>`;
+    const html = `<div class="arabic" dir="rtl" style="font-size: 2.5rem; text-align: center; margin: 2rem 0; font-weight: bold; color: #0f766e; font-family: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', serif;">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div><br/>`;
     execCmd('insertHTML', html);
   };
 
@@ -377,6 +401,9 @@ const RichTextEditor = ({
             value={activeFormat.fontName || 'Arial'}
             onChange={(e) => execCmd('fontName', e.target.value)}
             className='h-9 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 px-2 outline-none cursor-pointer hover:bg-slate-100 shrink-0 min-w-[110px]'>
+            <option value='Amiri'>Amiri (Arab)</option>
+            <option value='Traditional Arabic'>Traditional Arab</option>
+            <option value='Noto Naskh Arabic'>Noto Naskh (Modern)</option>
             <option value='Arial'>Arial</option>
             <option value='Helvetica'>Helvetica</option>
             <option value='Times New Roman'>Times New Roman</option>
@@ -410,6 +437,7 @@ const RichTextEditor = ({
           </select>
 
           <select
+            value={activeFormat.fontSize || ''}
             onChange={(e) => setFontSize(e.target.value)}
             className='h-9 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 px-2 outline-none cursor-pointer hover:bg-slate-100 shrink-0'>
             <option value=''>Ukuran</option>
@@ -985,9 +1013,13 @@ export default function AdminMediaCMS() {
         .prose-dakwah ul { list-style-position: inside; margin-bottom: 1.5em; color: #475569; }
         .prose-dakwah ol { list-style-position: inside; margin-bottom: 1.5em; color: #475569; }
         .prose-dakwah a { color: #0ea5e9; text-decoration: underline; text-underline-offset: 4px; }
-        .prose-dakwah [dir="rtl"], .prose-dakwah .arabic { font-family: 'Amiri', serif; }
+        .prose-dakwah [dir="rtl"], .prose-dakwah .arabic { font-family: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .prose-dakwah font[face="Amiri"] { font-family: 'Amiri', serif !important; }
+        .prose-dakwah font[face="Noto Naskh Arabic"] { font-family: 'Noto Naskh Arabic', serif !important; }
+        .prose-dakwah font[face="Traditional Arabic"] { font-family: 'Traditional Arabic', 'Amiri', 'Noto Naskh Arabic', serif !important; }
 
         @keyframes subtle-jiggle {
           0% { transform: rotate(-0.5deg) scale(0.99); }

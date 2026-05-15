@@ -1,5 +1,8 @@
+/* 1. SEMUA IMPORT HARUS DI PALING ATAS */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Naskh+Arabic:wght@400;700&display=swap');
 @import 'tailwindcss';
 
+/* 2. PENGATURAN TEMA TAILWIND */
 /* #059669 */
 @theme {
   --color-mni-primary: #115e59;
@@ -16,9 +19,22 @@
   --color-mni-muted: #64748b;
 }
 
+/* 3. LAYER DASAR TAILWIND */
 @layer base {
   body {
     background-color: var(--color-mni-background);
     color: var(--color-mni-text);
   }
+}
+
+/* 4. CSS KUSTOM (OBAT FONT ARAB UNTUK HP) */
+font[face='Amiri'] {
+  font-family: 'Amiri', serif !important;
+}
+font[face='Noto Naskh Arabic'] {
+  font-family: 'Noto Naskh Arabic', serif !important;
+}
+font[face='Traditional Arabic'] {
+  font-family:
+    'Traditional Arabic', 'Amiri', 'Noto Naskh Arabic', serif !important;
 }

@@ -209,6 +209,12 @@ export default function KurbanUI({
     },
   };
 
+  // 1. TAMBAHKAN STATE INI DI BAGIAN ATAS KOMPONEN (di bawah useState lainnya)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // 2. RUMUS PENGAMAN SLIDER (Pastikan slider selalu bisa mentok ujung)
+  const safeMaxPrice = Math.ceil(maxPriceData / 100000) * 100000;
+
   return (
     <div className='max-w-6xl mx-auto px-4 py-10'>
       {/* 1. HEADER HERO */}
@@ -480,27 +486,44 @@ export default function KurbanUI({
                       <input
                         type='range'
                         min={minPriceData}
-                        max={maxPriceData}
-                        step={100000}
+                        max={safeMaxPrice} // <-- Gunakan Safe Max agar tidak stuck
+                        step={25000}
                         value={currentMaxHarga}
                         onChange={(e) => setFHarga(Number(e.target.value))}
-                        className='flex-1 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white'
+                        className='flex-1 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white -mx-1'
                       />
 
-                      <div className='relative group/price shrink-0 ml-1'>
-                        <button className='p-1 bg-white/10 border border-white/20 rounded-lg hover:bg-white/30 flex items-center transition-colors focus:outline-none'>
-                          <ChevronDown className='w-3.5 h-3.5 text-white' />
+                      <div className='relative shrink-0 ml-1'>
+                        <button
+                          // Ubah hover menjadi fungsi klik yang responsif di HP
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          // Tutup otomatis saat user klik di luar tombol
+                          onBlur={() =>
+                            setTimeout(() => setIsDropdownOpen(false), 200)
+                          }
+                          className='p-1 bg-white/10 border border-white/20 rounded-lg hover:bg-white/30 flex items-center transition-colors focus:outline-none'>
+                          <ChevronDown
+                            className={`w-3.5 h-3.5 text-white transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                          />
                         </button>
 
-                        <div className='absolute right-0 top-full pt-2 w-32 hidden group-hover/price:block z-[60]'>
+                        {/* Tampilkan menu berdasarkan State, bukan grup hover lagi */}
+                        <div
+                          className={`absolute right-0 top-full pt-2 w-32 z-[60] ${isDropdownOpen ? 'block' : 'hidden'}`}>
                           <div className='bg-white rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] border border-gray-100 p-1.5'>
                             <button
-                              onClick={() => setFHarga(minPriceData)}
+                              onMouseDown={() => {
+                                setFHarga(minPriceData);
+                                setIsDropdownOpen(false);
+                              }}
                               className='w-full text-left px-3 py-2 text-xs font-bold text-gray-700 hover:bg-mni-primary/10 hover:text-mni-primary rounded-lg transition-colors flex items-center justify-between'>
                               Termurah
                             </button>
                             <button
-                              onClick={() => setFHarga(maxPriceData)}
+                              onMouseDown={() => {
+                                setFHarga(maxPriceData); // Tetap set ke data asli, bukan safeMaxPrice
+                                setIsDropdownOpen(false);
+                              }}
                               className='w-full text-left px-3 py-2 text-xs font-bold text-gray-700 hover:bg-mni-primary/10 hover:text-mni-primary rounded-lg transition-colors flex items-center justify-between'>
                               Termahal
                             </button>
