@@ -98,8 +98,8 @@ export async function POST(request: Request) {
       nama_mudhohi: mudhohi.nama,
       bagian_sepertiga: isUrunan
         ? mudhohi.ambilSepertiga
-          ? 'Diambil (1/3)'
-          : 'Disedekahkan'
+          ? 'Iya'
+          : 'Tidak'
         : mudhohi.bagianSepertiga || 'Tidak ada request',
       whatsapp: mudhohi.whatsapp,
       email: mudhohi.email,
