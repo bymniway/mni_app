@@ -214,29 +214,98 @@ export default function DetailMediaPage() {
     };
   }, [isAutoScrolling]);
 
-  // LOGIKA: Text Selection Share (Highlight Instan)
-  const handleTextSelection = () => {
-    const sel = window.getSelection();
-    if (sel && sel.toString().trim().length > 10) {
-      const range = sel.getRangeAt(0).getBoundingClientRect();
-      setSelection({
-        text: sel.toString(),
-        x: range.left + range.width / 2,
-        y: range.top + window.scrollY - 60,
-      });
-    } else {
-      setSelection(null);
-    }
-  };
+  // ==========================================
+  // FITUR: AUTO-APPEND LINK SAAT COPY TEKS
+  // ==========================================
+  useEffect(() => {
+    const handleCopy = (e: ClipboardEvent) => {
+      const selection = window.getSelection();
+      // Jika tidak ada teks yang diblok, biarkan fungsi copy berjalan normal
+      if (!selection || selection.toString().trim().length === 0) return;
 
-  const shareQuote = () => {
-    if (!selection) return;
-    const text = encodeURIComponent(
-      `"${selection.text}"\n\nBaca selengkapnya di: ${window.location.href}`,
-    );
-    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-    setSelection(null);
-  };
+      const originalText = selection.toString();
+
+      // Susun format teks yang akan masuk ke clipboard (Bisa disesuaikan)
+      const textToCopy = `"${originalText}"\n\n___\nBaca selengkapnya di MNI App: ${window.location.href}`;
+
+      // Timpa clipboard bawaan browser dengan teks kustom kita
+      if (e.clipboardData) {
+        e.clipboardData.setData('text/plain', textToCopy);
+        e.preventDefault(); // Wajib ada agar browser tidak menimpa ulang
+      }
+    };
+
+    document.addEventListener('copy', handleCopy);
+    return () => {
+      document.removeEventListener('copy', handleCopy);
+    };
+  }, []);
+
+  // LOGIKA: Text Selection Share (Highlight Instan)
+  // const handleTextSelection = () => {
+  //   const sel = window.getSelection();
+  //   if (sel && sel.toString().trim().length > 10) {
+  //     const range = sel.getRangeAt(0).getBoundingClientRect();
+  //     setSelection({
+  //       text: sel.toString(),
+  //       x: range.left + range.width / 2,
+  //       y: range.top + window.scrollY - 60,
+  //     });
+  //   } else {
+  //     setSelection(null);
+  //   }
+  // };
+
+  // const handleTextSelection = (e: any) => {
+  //   // 1. Abaikan jika yang diklik adalah popup itu sendiri
+  //   if (e.target && e.target.closest('#selection-popup')) return;
+
+  //   // 2. Beri jeda 50ms agar browser selesai memproses sentuhan jari
+  //   setTimeout(() => {
+  //     const sel = window.getSelection();
+  //     if (sel && sel.toString().trim().length > 10) {
+  //       const range = sel.getRangeAt(0);
+  //       const rect = range.getBoundingClientRect();
+
+  //       // Jaga agar popup tidak terpotong tepi layar HP
+  //       const popupWidth = 160;
+  //       let safeX = rect.left + rect.width / 2;
+  //       safeX = Math.max(
+  //         popupWidth / 2,
+  //         Math.min(safeX, window.innerWidth - popupWidth / 2),
+  //       );
+
+  //       // 3. FOTOKOPI (CLONE) AREA YANG DIBLOK
+  //       const savedRange = range.cloneRange();
+
+  //       setSelection({
+  //         text: sel.toString(),
+  //         x: safeX,
+  //         y: rect.top + window.scrollY - 60,
+  //       });
+
+  //       // 4. JURUS RAHASIA: Paksa browser memblok ulang teksnya setelah popup render
+  //       setTimeout(() => {
+  //         const currentSel = window.getSelection();
+  //         if (currentSel) {
+  //           currentSel.removeAllRanges();
+  //           currentSel.addRange(savedRange); // Kembalikan blok birunya!
+  //         }
+  //       }, 50);
+  //     } else {
+  //       setSelection(null);
+  //     }
+  //   }, 50);
+  // };
+
+  // const shareQuote = () => {
+  //   if (!selection) return;
+  //   const text = encodeURIComponent(
+  //     `"${selection.text}"\n\nBaca selengkapnya di: ${window.location.href}`,
+  //   );
+  //   window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  //   setSelection(null);
+  // };
 
   const handleShare = () => {
     const textInfo = encodeURIComponent(
@@ -279,23 +348,19 @@ export default function DetailMediaPage() {
   useEffect(() => {
     const handleScroll = () => setShowFloatingBar(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll);
-    document.addEventListener('mouseup', handleTextSelection);
-    document.addEventListener('touchend', handleTextSelection);
+    // document.addEventListener('mouseup', handleTextSelection);
+    // document.addEventListener('touchend', handleTextSelection);
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      document.removeEventListener('mouseup', handleTextSelection);
-      document.removeEventListener('touchend', handleTextSelection);
+      // document.removeEventListener('mouseup', handleTextSelection);
+      // document.removeEventListener('touchend', handleTextSelection);
     };
   }, []);
 
   const handlePrint = () => window.print();
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  const fontSizes = [
-    { p: '1.125rem', h2: '1.875rem', drop: '4rem' },
-    { p: '1.35rem', h2: '2.1rem', drop: '4.5rem' },
-    { p: '1.6rem', h2: '2.5rem', drop: '5.2rem' },
-  ];
+  const fontScales = [1, 1.15, 1.3];
 
   if (isLoading)
     return (
@@ -332,27 +397,35 @@ export default function DetailMediaPage() {
       )}
 
       {/* SELECTION POPUP (Highlight Kutipan) */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {selection && (
           <motion.button
+            id='selection-popup'
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             style={{ left: selection.x, top: selection.y }}
-            onClick={shareQuote}
+            onPointerDown={(e) => {
+              e.preventDefault(); // Cegah teks hilang blok-nya
+              e.stopPropagation(); // Cegah klik bocor ke background
+              shareQuote();
+            }}
             className='absolute z-[100] -translate-x-1/2 bg-slate-900 text-white px-5 py-2.5 rounded-full shadow-2xl font-bold text-xs flex items-center gap-2 hover:bg-teal-600 transition-colors border border-white/20'>
             <Quote className='w-3.5 h-3.5' /> Bagikan Kutipan
           </motion.button>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* CSS DYNAMIC & EDITORIAL STYLE */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        :root { --p-size: ${fontSizes[fontSizeLevel].p}; --h2-size: ${fontSizes[fontSizeLevel].h2}; --drop-size: ${fontSizes[fontSizeLevel].drop}; }
+        :root { --text-scale: ${fontScales[fontSizeLevel]};}
         ::selection { background: #14b8a6; color: #fff; }
         ::-moz-selection { background: #14b8a6; color: #fff; }
+        .prose-dakwah { 
+          zoom: var(--text-scale); 
+        }
         .prose-dakwah p { margin-bottom: 1.6em; line-height: 1.85; font-size: var(--p-size); color: #334155; transition: font-size 0.3s ease; }
         .prose-dakwah > p:first-of-type::first-letter { font-size: var(--drop-size); font-weight: 900; float: left; margin-right: 0.75rem; line-height: 0.8; color: #0f766e; text-transform: uppercase; transition: font-size 0.3s ease; }
         .prose-dakwah h2 { font-size: var(--h2-size); font-weight: 800; color: #0f172a; margin-top: 2.5em; margin-bottom: 1em; letter-spacing: -0.025em; transition: font-size 0.3s ease; }
