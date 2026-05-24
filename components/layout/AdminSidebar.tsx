@@ -201,6 +201,7 @@ export default function AdminSidebar({
                   { path: '/cms/kurban/riwayat', label: 'Semua Pesanan' },
                   { path: '/cms/kurban/katalog', label: 'Katalog Hewan' },
                   { path: '/cms/kurban/panitia', label: 'Panitia' },
+                  { path: '/cms/kurban/distribusi', label: 'Distribusi' },
                 ],
               },
               {

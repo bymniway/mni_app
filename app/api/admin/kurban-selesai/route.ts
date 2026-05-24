@@ -17,12 +17,28 @@ export async function POST(request: Request) {
     } = await request.json();
     const supabase = getServiceSupabase();
 
+    // Tarik log lama
+    const { data: psn } = await supabase
+      .from('pesanan')
+      .select('logs')
+      .eq('id', idPesanan)
+      .single();
+    const currentLogs = psn?.logs || [];
+    const newLog = {
+      status: 'Sembelih Selesai',
+      timestamp: new Date().toISOString(),
+      oleh: 'Tim Jagal / Panitia Kurban',
+      catatan:
+        'Silahkan cek dokumentasi penyembelihan pada email yang kami kirimkan atau pada halaman status kurban Anda. Terima kasih telah mempercayakan ibadah kurban Anda kepada kami. Semoga Allah menerima ibadah kurban kita semua. Amin',
+    };
+
     // 1. UPDATE STATUS PESANAN MENJADI "Selesai" DI DATABASE
     const { error: dbError } = await supabase
       .from('pesanan')
       .update({
         status_pesanan: 'Selesai',
-        bukti_sembelih_url: gambarSembelihUrl,
+        bukti_sembelih_url: JSON.stringify(gambarSembelihUrl),
+        logs: [...currentLogs, newLog],
       })
       .eq('id', idPesanan);
 
@@ -57,6 +73,16 @@ export async function POST(request: Request) {
       'email_kurban_doa_SELESAI',
       'Semoga Allah menerima ibadah kurban kita semua. Amin.',
     );
+
+    const galeriEmail = Array.isArray(gambarSembelihUrl)
+      ? gambarSembelihUrl
+          .map(
+            (url) => `
+      <img src="${url}" style="width: 48%; max-width: 280px; height: 180px; object-fit: cover; display: inline-block; margin: 1%; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" />
+    `,
+          )
+          .join('')
+      : `<img src="${gambarSembelihUrl}" style="width: 100%; max-width: 500px; height: auto; border-radius: 8px;" />`;
 
     // 3. DESAIN EMAIL PROFESIONAL (HTML)
     const htmlBody = `
@@ -103,7 +129,7 @@ export async function POST(request: Request) {
 
             <p style="font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Dokumentasi Penyembelihan:</p>
             <div style="background-color: #f1f5f9; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; margin-bottom: 30px;">
-               <img src="${gambarSembelihUrl}" alt="Bukti Sembelih" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" />
+               ${galeriEmail}
             </div>
 
             <div style="padding: 24px; border-radius: 16px; border: 2px dashed #10b981; text-align: center; background-color: #ecfdf5;">

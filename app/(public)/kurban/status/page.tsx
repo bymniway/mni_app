@@ -1,176 +1,812 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useSearchParams } from 'next/navigation';
 import {
   Search,
   Loader2,
-  FileText,
-  CheckCircle2,
-  Clock,
   AlertCircle,
+  FileText,
+  UserCheck,
+  CircleCheckBig,
+  XCircle,
+  ArrowRight,
+  Receipt,
+  Users,
+  Timer,
+  PackageOpen,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  History,
+  Check,
 } from 'lucide-react';
 
-export default function LacakStatusPage() {
-  const [keyword, setKeyword] = useState('');
-  const [hasil, setHasil] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sudahCari, setSudahCari] = useState(false);
+// ==========================================
+// HELPER: FORMAT TANGGAL
+// ==========================================
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  try {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+};
 
-  const cariStatus = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!keyword) return;
+const cleanUrl = (url: string) => {
+  if (!url) return '';
+  // Membabat habis semua jenis tanda kutip (ganda/tunggal) dan spasi
+  return url.replace(/["']/g, '').trim();
+};
+// ==========================================
+// KOMPONEN: CAROUSEL GAMBAR (SWIPE NATIVE STYLE)
+// ==========================================
+const ImageCarousel = ({ rawUrlData }: { rawUrlData: string }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [images, setImages] = useState<string[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    setIsLoading(true);
-    setSudahCari(true);
+  useEffect(() => {
+    if (!rawUrlData) return;
+
+    // Pembersih tanda kutip liar
+    const cleanUrl = (url: string) => url?.replace(/["']/g, '').trim();
 
     try {
-      // Cari berdasarkan Kode TRX ATAU Nomor WhatsApp
-      const { data, error } = await supabase
-        .from('pesanan')
-        .select('*, hewan(jenis, tipe)')
-        .or(`kode_trx.ilike.%${keyword}%,whatsapp.ilike.%${keyword}%`)
-        .order('created_at', { ascending: false });
+      const parsed = JSON.parse(rawUrlData);
+      if (Array.isArray(parsed)) {
+        setImages(parsed.map(cleanUrl));
+      } else if (typeof parsed === 'string') {
+        setImages([cleanUrl(parsed)]);
+      } else {
+        setImages([cleanUrl(rawUrlData)]);
+      }
+    } catch {
+      setImages([cleanUrl(rawUrlData)]);
+    }
+  }, [rawUrlData]);
 
-      if (error) throw error;
-      setHasil(data || []);
-    } catch (error) {
-      console.error(error);
-      alert('Gagal mencari data.');
-    } finally {
-      setIsLoading(false);
+  // Fungsi untuk mendeteksi gambar mana yang sedang aktif saat digeser (swipe)
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const scrollPosition = container.scrollLeft;
+    const width = container.clientWidth;
+    // Hitung index berdasarkan posisi scroll dibagi lebar container
+    const newIndex = Math.round(scrollPosition / width);
+    if (newIndex !== currentIndex) {
+      setCurrentIndex(newIndex);
     }
   };
 
-  const getStatusUI = (status: string) => {
-    switch (status) {
-      case 'Lunas':
-        return {
-          icon: <CheckCircle2 className='w-5 h-5 text-emerald-600' />,
-          bg: 'bg-emerald-50',
-          border: 'border-emerald-200',
-          text: 'text-emerald-700',
-        };
-      case 'Booking':
-        return {
-          icon: <FileText className='w-5 h-5 text-indigo-600' />,
-          bg: 'bg-indigo-50',
-          border: 'border-indigo-200',
-          text: 'text-indigo-700',
-        };
-      case 'Menunggu':
-        return {
-          icon: <Clock className='w-5 h-5 text-amber-600' />,
-          bg: 'bg-amber-50',
-          border: 'border-amber-200',
-          text: 'text-amber-700',
-        };
-      default:
-        return {
-          icon: <AlertCircle className='w-5 h-5 text-red-600' />,
-          bg: 'bg-red-50',
-          border: 'border-red-200',
-          text: 'text-red-700',
-        };
+  // Fungsi untuk menggeser gambar jika jamaah menekan titik indikator
+  const scrollTo = (index: number) => {
+    if (scrollContainerRef.current) {
+      const width = scrollContainerRef.current.clientWidth;
+      scrollContainerRef.current.scrollTo({
+        left: index * width,
+        behavior: 'smooth',
+      });
     }
   };
+
+  if (images.length === 0) return null;
+
+  if (images.length === 1) {
+    return (
+      <img
+        src={images[0]}
+        alt='Bukti Sembelih'
+        className='w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm border border-emerald-200/50'
+      />
+    );
+  }
 
   return (
-    <div className='max-w-3xl mx-auto p-6 min-h-[70vh] animate-in fade-in'>
-      <div className='text-center mb-8'>
-        <h1 className='text-3xl font-black text-teal-800'>
-          Lacak Status Kurban
-        </h1>
-        <p className='text-slate-500 mt-2'>
-          Pantau status pendaftaran kurban Anda secara mandiri.
-        </p>
+    <div className='relative w-full h-48 sm:h-64 rounded-xl overflow-hidden shadow-sm border border-emerald-200/50 group'>
+      {/* Container Gambar Bergeser dengan efek "CSS Scroll Snap".
+        hide-scrollbar akan menyembunyikan scrollbar agar bersih.
+      */}
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className='flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth'
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {/* Hack CSS agar scrollbar webkit (Chrome/Safari) tersembunyi */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `div::-webkit-scrollbar { display: none; }`,
+          }}
+        />
+
+        {images.map((img, idx) => (
+          <img
+            key={idx}
+            src={img}
+            alt={`Bukti ${idx + 1}`}
+            className='min-w-full h-full object-cover snap-center shrink-0'
+          />
+        ))}
       </div>
 
-      <form
-        onSubmit={cariStatus}
-        className='relative mb-10'>
-        <Search className='absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-6 h-6' />
-        <input
-          type='text'
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder='Masukkan Kode QRB-MNI atau No. WhatsApp...'
-          className='w-full pl-14 pr-32 py-4 border border-slate-200 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-teal-600 text-lg'
-          required
-        />
-        <button
-          type='submit'
-          disabled={isLoading}
-          className='absolute right-2 top-2 bottom-2 bg-teal-700 text-white px-6 rounded-xl font-bold hover:bg-teal-800 transition'>
-          {isLoading ? (
-            <Loader2 className='w-6 h-6 animate-spin mx-auto' />
-          ) : (
-            'Lacak'
-          )}
-        </button>
-      </form>
+      {/* Titik Indikator Bawah (Instagram Style) */}
+      <div className='absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10'>
+        {images.map((_, idx) => (
+          <div
+            key={idx}
+            onClick={() => scrollTo(idx)}
+            className={`h-1.5 rounded-full cursor-pointer transition-all duration-300 shadow-sm ${
+              currentIndex === idx
+                ? 'w-4 bg-white'
+                : 'w-1.5 bg-white/50 hover:bg-white/80'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+// ==========================================
+// 1. KOMPONEN: SISA SLOT URUNAN
+// ==========================================
+const UrunanProgress = ({
+  hewanId,
+  hewanTipe,
+  hewanJenis,
+}: {
+  hewanId: string;
+  hewanTipe: string;
+  hewanJenis: string;
+}) => {
+  const [terisi, setTerisi] = useState(0);
+  const isUrunan =
+    hewanTipe?.toLowerCase().includes('urunan') ||
+    hewanJenis?.toLowerCase().includes('urunan');
 
-      <div className='space-y-4'>
-        {isLoading && (
-          <p className='text-center text-slate-400'>Mencari data...</p>
-        )}
+  useEffect(() => {
+    if (!isUrunan) return;
+    const fetchSlot = async () => {
+      const { count, error } = await supabase
+        .from('pesanan')
+        .select('id', { count: 'exact' })
+        .eq('hewan_id', hewanId)
+        .in('status_pesanan', [
+          'Booking',
+          'Menunggu',
+          'Lunas',
+          'Selesai',
+          'Terkirim',
+        ])
+        .limit(0);
+      if (error) {
+        console.error('Gagal mengambil kuota urunan:', error.message);
+        return;
+      }
+      setTerisi(count || 0);
+    };
+    fetchSlot();
+  }, [hewanId, isUrunan]);
 
-        {!isLoading && sudahCari && hasil.length === 0 && (
-          <div className='text-center p-10 bg-slate-50 rounded-2xl border border-slate-200'>
-            <AlertCircle className='w-10 h-10 text-slate-400 mx-auto mb-3' />
-            <p className='text-slate-600 font-medium'>
-              Pesanan tidak ditemukan.
-            </p>
-            <p className='text-sm text-slate-400 mt-1'>
-              Pastikan Kode TRX atau No WhatsApp sudah benar.
-            </p>
-          </div>
-        )}
+  if (!isUrunan) return null;
+  return (
+    <div className='mt-3 pt-3 border-t border-slate-200/60'>
+      <div className='flex justify-between items-center mb-2'>
+        <p className='text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5'>
+          <Users className='w-3.5 h-3.5' /> Kuota Sapi Patungan
+        </p>
+        <p className='text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded'>
+          {terisi} dari 7 Terisi
+        </p>
+      </div>
+      <div className='flex gap-1.5 w-full'>
+        {[1, 2, 3, 4, 5, 6, 7].map((slot) => (
+          <div
+            key={slot}
+            className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${slot <= terisi ? 'bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.5)]' : 'bg-slate-200'}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+// ==========================================
+// 2. KOMPONEN: COUNTDOWN OTOMATIS (10 DZULHIJJAH)
+// ==========================================
+const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+  const [targetDateMs, setTargetDateMs] = useState<number | null>(null);
 
-        {hasil.map((pesanan) => {
-          const ui = getStatusUI(pesanan.status_pesanan);
+  // 1. Ambil pengaturan penyesuaian Hijriah dan hitung kapan 10 Dzulhijjah
+  useEffect(() => {
+    const hitungIdulAdha = async () => {
+      let hijriAdj = 0;
+      try {
+        const { data } = await supabase
+          .from('pengaturan_web')
+          .select('nilai')
+          .eq('kunci', 'hijri_adjustment')
+          .single();
+        if (data && data.nilai) hijriAdj = parseInt(data.nilai) || 0;
+      } catch (err) {
+        console.error('Gagal memuat hijri_adjustment, menggunakan 0');
+      }
+
+      const hijriFormatterParts = new Intl.DateTimeFormat(
+        'en-US-u-ca-islamic',
+        {
+          month: 'numeric',
+          day: 'numeric',
+        },
+      );
+
+      // Cari 10 Dzulhijjah terdekat (mulai dari hari ini)
+      let checkDate = new Date();
+      checkDate.setHours(10, 0, 0, 0); // Atur penyembelihan jam 10:00 Pagi
+
+      for (let i = 0; i < 365; i++) {
+        const adjustedDate = new Date(
+          checkDate.getTime() + hijriAdj * 86400000,
+        );
+        const parts = hijriFormatterParts.formatToParts(adjustedDate);
+        const hMonth = parseInt(
+          parts.find((p) => p.type === 'month')?.value || '0',
+        );
+        const hDay = parseInt(
+          parts.find((p) => p.type === 'day')?.value || '0',
+        );
+
+        // Jika Bulan 12 (Dzulhijjah) dan Hari 10 (Idul Adha)
+        if (hMonth === 12 && hDay === 10) {
+          setTargetDateMs(checkDate.getTime());
+          break;
+        }
+        checkDate.setDate(checkDate.getDate() + 1);
+      }
+    };
+
+    hitungIdulAdha();
+  }, []);
+
+  // 2. Jalankan Hitung Mundur
+  useEffect(() => {
+    if (
+      statusPesanan === 'Selesai' ||
+      statusPesanan === 'Terkirim' ||
+      !targetDateMs
+    )
+      return;
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDateMs - now;
+
+      if (distance < 0) {
+        setTimeLeft('Memulai Penyembelihan...');
+        clearInterval(interval);
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+      );
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000); // <--- Kalkulasi detik ditambahkan
+
+      // Format detik agar selalu 2 digit (contoh: 09d, bukan 9d)
+      const formattedSeconds = seconds.toString().padStart(2, '0');
+      setTimeLeft(
+        `${days} hari ${hours} jam ${minutes} menit ${formattedSeconds} detik`,
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDateMs, statusPesanan]);
+
+  if (statusPesanan !== 'Lunas' || !targetDateMs) return null;
+
+  return (
+    <div className='bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-4 mb-4 text-white shadow-lg shadow-teal-600/20 animate-in fade-in zoom-in duration-500 flex items-center justify-between'>
+      <div>
+        <p className='text-[10px] font-bold text-teal-100 uppercase tracking-widest mb-0.5 flex items-center gap-1.5'>
+          <Timer className='w-3.5 h-3.5' /> Hitung Mundur Eksekusi
+        </p>
+        <p className='text-xl font-black tracking-tight'>{timeLeft}</p>
+      </div>
+    </div>
+  );
+};
+// ==========================================
+// 3. KOMPONEN: SMART VERTICAL TRACKER
+// ==========================================
+const SmartVerticalTracker = ({ pesanan }: { pesanan: any }) => {
+  const status = pesanan.status_pesanan;
+  const logs = pesanan.logs || [];
+  const findLog = (targetStatuses: string[]) =>
+    logs
+      .slice()
+      .reverse()
+      .find((l: any) => targetStatuses.includes(l.status));
+
+  const getLevel = () => {
+    if (status === 'Terkirim') return 5;
+    if (status === 'Selesai') return 4;
+    if (status === 'Lunas') return 3;
+    if (status === 'Menunggu' || status === 'Ditolak') return 2;
+    return 1;
+  };
+
+  const currentLevel = getLevel();
+  const isCancelled = status === 'Dibatalkan';
+  const isRejected = status === 'Ditolak';
+  const lineHeights = ['0%', '25%', '50%', '75%', '100%'];
+  const activeLineHeight = isCancelled ? '0%' : lineHeights[currentLevel - 1];
+
+  const stepsInfo = [
+    {
+      level: 1,
+      title: 'Pendaftaran',
+      desc: 'Formulir kurban dan slot berhasil dicatat sistem.',
+      icon: FileText,
+      time: findLog(['Booking'])?.timestamp || pesanan.created_at,
+      catatan: null,
+    },
+    {
+      level: 2,
+      title: isRejected ? 'Verifikasi Gagal' : 'Verifikasi Pembayaran',
+      desc: isRejected
+        ? 'Terdapat masalah pada pembayaran.'
+        : 'Pengecekan dana transfer oleh verifikator.',
+      icon: UserCheck,
+      time:
+        findLog(['Menunggu', 'Ditolak'])?.timestamp ||
+        (currentLevel === 2 ? pesanan.updated_at : null),
+      catatan: isRejected
+        ? pesanan.catatan_admin ||
+          'Silakan cek kembali nominal dan bukti struk Anda.'
+        : null,
+    },
+    {
+      level: 3,
+      title: 'Pembayaran Lunas',
+      desc: 'Dana terverifikasi. Kuota kurban Anda telah dikunci.',
+      icon: Receipt,
+      time:
+        findLog(['Lunas'])?.timestamp ||
+        (currentLevel === 3 ? pesanan.updated_at : null),
+      catatan: null,
+    },
+    {
+      level: 4,
+      title: 'Penyembelihan',
+      desc: 'Alhamdulillah Hewan kurban telah disembelih sesuai Syariat Islam.',
+      icon: CircleCheckBig,
+      time:
+        findLog(['Selesai', 'Sembelih Selesai'])?.timestamp ||
+        (currentLevel === 4 ? pesanan.updated_at : null),
+      catatan: findLog(['Selesai', 'Sembelih Selesai'])?.catatan,
+    },
+    {
+      level: 5,
+      title: 'Distribusi Daging',
+      desc: 'Hak daging kurban telah disalurkan / diterima.',
+      icon: PackageOpen,
+      time:
+        findLog(['Terkirim', 'Hak Daging Diterima'])?.timestamp ||
+        (currentLevel === 5 ? pesanan.updated_at : null),
+      catatan: findLog(['Terkirim', 'Hak Daging Diterima'])?.catatan,
+    },
+  ];
+
+  return (
+    <div className='relative pt-2 pb-6 pl-4 sm:pl-6 w-full'>
+      <div className='absolute top-6 bottom-12 left-[31px] sm:left-[39px] w-0.5 bg-slate-100 rounded-full' />
+      <div
+        className={`absolute top-6 left-[31px] sm:left-[39px] w-0.5 rounded-full transition-all duration-1000 ease-in-out ${isRejected ? 'bg-rose-500' : 'bg-teal-500'}`}
+        style={{ height: activeLineHeight }}
+      />
+      <div className='space-y-6 sm:space-y-8'>
+        {stepsInfo.map((step) => {
+          const isPassed =
+            currentLevel > step.level && !isCancelled && !isRejected;
+          const isActive = currentLevel === step.level;
+          const isErrorState = isActive && (isCancelled || isRejected);
+          const Icon = step.icon;
+
           return (
             <div
-              key={pesanan.id}
-              className={`p-5 rounded-2xl border ${ui.border} bg-white shadow-sm flex flex-col md:flex-row gap-4 justify-between items-start md:items-center`}>
-              <div>
-                <p className='text-xs font-black text-slate-400 uppercase tracking-widest'>
-                  {pesanan.kode_trx}
-                </p>
-                <h3 className='text-lg font-bold text-slate-800 mt-1'>
-                  {pesanan.nama_mudhohi}
-                </h3>
-                <p className='text-sm font-semibold text-teal-700'>
-                  {pesanan.hewan.jenis} - {pesanan.hewan.tipe}
-                </p>
-                <p className='text-xs text-slate-500 mt-2'>
-                  Terdaftar:{' '}
-                  {new Date(pesanan.created_at).toLocaleDateString('id-ID', {
-                    dateStyle: 'medium',
-                  })}
-                </p>
+              key={step.level}
+              className='relative z-10 flex items-start gap-4 sm:gap-5 group'>
+              <div
+                className={`w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${isPassed ? 'border-emerald-500 bg-teal-600 text-white shadow-sm' : isErrorState ? 'bg-rose-500 border-rose-600 text-white ring-4 ring-rose-50' : isActive ? 'bg-white border-teal-500 text-teal-600 ring-4 ring-teal-50' : 'bg-white border-slate-200 text-slate-300'}`}>
+                {isPassed ? (
+                  <Check className='w-4 h-4 sm:w-5 sm:h-5 animate-in zoom-in duration-300' />
+                ) : isErrorState ? (
+                  <XCircle className='w-4 h-4 sm:w-5 sm:h-5 animate-in zoom-in duration-300' />
+                ) : (
+                  <Icon
+                    className={`w-4 h-4 sm:w-5 sm:h-5 ${isActive ? 'animate-pulse' : ''}`}
+                  />
+                )}
               </div>
-
-              <div className='flex flex-col items-end w-full md:w-auto'>
-                <div
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full ${ui.bg} ${ui.text} border ${ui.border}`}>
-                  {ui.icon}
-                  <span className='font-bold text-sm uppercase tracking-wider'>
-                    {pesanan.status_pesanan}
-                  </span>
+              <div
+                className={`flex-1 pt-0.5 sm:pt-1 transition-opacity duration-500 ${isPassed || isActive ? 'opacity-100' : 'opacity-40'}`}>
+                <div className='flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 mb-1'>
+                  <h4
+                    className={`text-sm sm:text-[15px] font-bold tracking-tight ${isErrorState ? 'text-rose-600' : isActive ? 'text-teal-700' : 'text-slate-800'}`}>
+                    {isCancelled && isActive
+                      ? 'Transaksi Dibatalkan'
+                      : step.title}
+                  </h4>
+                  {step.time && (
+                    <span className='text-[10px] sm:text-[11px] font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md self-start sm:self-auto'>
+                      {formatDate(step.time)}
+                    </span>
+                  )}
                 </div>
-
-                {pesanan.status_pesanan === 'Booking' && (
-                  <a
-                    href={`/kurban/konfirmasi`}
-                    className='mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-800 underline'>
-                    Upload Bukti Transfer &rarr;
-                  </a>
+                <p className='text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed max-w-[90%]'>
+                  {isCancelled && isActive
+                    ? 'Pesanan hangus. Hubungi admin jika terdapat kesalahan.'
+                    : step.desc}
+                </p>
+                {step.catatan && (
+                  <div
+                    className={`mt-3 p-3 sm:p-4 rounded-xl border text-xs sm:text-[13px] font-medium leading-relaxed ${isErrorState ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-slate-50 border-slate-100 text-slate-600'}`}>
+                    {isErrorState && (
+                      <AlertCircle className='w-4 h-4 inline-block mr-1.5 -mt-0.5 text-rose-500' />
+                    )}{' '}
+                    {step.catatan}
+                  </div>
                 )}
               </div>
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// KOMPONEN UTAMA
+// ==========================================
+export default function LacakStatusPage() {
+  const searchParams = useSearchParams();
+  const [keyword, setKeyword] = useState('');
+
+  const [hasil, setHasil] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sudahCari, setSudahCari] = useState(false);
+
+  // ==========================================
+  // LOGIKA PENCARIAN PINTAR (SMART SEARCH)
+  // ==========================================
+  const eksekusiCariStatus = useCallback(async (targetKeyword: string) => {
+    if (!targetKeyword) return;
+    const cleanKeyword = targetKeyword.trim();
+
+    // 1. Deteksi menggunakan Regex: Apakah isinya MURNI angka semua?
+    const isMurniAngka = /^\d+$/.test(cleanKeyword);
+
+    // Jika murni angka (pencarian WA), blokir kalau kurang dari 4 digit
+    if (isMurniAngka && cleanKeyword.length < 4) {
+      alert('Masukkan minimal 4 digit nomor WhatsApp untuk mencari.');
+      return;
+    }
+
+    setIsLoading(true);
+    setSudahCari(true);
+
+    try {
+      // 2. Siapkan Query Dasar
+      let supabaseQuery = supabase
+        .from('pesanan')
+        .select('*, hewan(jenis, tipe, harga)');
+
+      // 3. Cabangkan Logika Query
+      if (isMurniAngka) {
+        // Logika WA: Fleksibel cari kecocokan nomor (%0812%)
+        supabaseQuery = supabaseQuery.ilike('whatsapp', `%${cleanKeyword}%`);
+      } else {
+        // Logika TRX: Pasti ada hurufnya, jadi WAJIB sama persis (QRB-MNI-...)
+        supabaseQuery = supabaseQuery.eq(
+          'kode_trx',
+          cleanKeyword.toUpperCase(),
+        );
+      }
+
+      // 4. Eksekusi Query ke Database
+      const { data, error } = await supabaseQuery.order('created_at', {
+        ascending: false,
+      });
+
+      if (error) throw error;
+      setHasil(data || []);
+    } catch (error) {
+      console.error(error);
+      alert('Gagal mencari data. Silakan coba lagi.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // AUTO-SEARCH DARI EMAIL URL (?trx=...)
+  useEffect(() => {
+    const trx = searchParams.get('trx');
+    if (trx) {
+      setKeyword(trx);
+      eksekusiCariStatus(trx);
+    }
+  }, [searchParams, eksekusiCariStatus]);
+
+  // MANUAL SEARCH DARI FORM INPUT
+  const cariStatus = (e: React.FormEvent) => {
+    e.preventDefault();
+    eksekusiCariStatus(keyword);
+  };
+
+  const [showRiwayat, setShowRiwayat] = useState(false);
+
+  return (
+    <div className='min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 font-sans selection:bg-teal-100 selection:text-teal-900'>
+      <div className='max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out'>
+        {/* Header & Search Bar (Sama seperti sebelumnya) */}
+        <div className='text-center space-y-1.5 sm:space-y-2'>
+          <h1 className='text-2xl sm:text-[28px] leading-tight font-extrabold text-teal-600 tracking-tight'>
+            Lacak Status Kurban
+          </h1>
+          <p className='text-xs sm:text-[15px] text-slate-500 font-medium'>
+            Pantau progress pendaftaran dan penyaluran kurban Anda.
+          </p>
+        </div>
+
+        <form
+          onSubmit={cariStatus}
+          className='relative flex items-center shadow-sm rounded-xl sm:rounded-2xl bg-white transition-all focus-within:shadow-md focus-within:ring-1 focus-within:ring-teal-500/20 border border-slate-200/80'>
+          <Search className='absolute left-4 sm:left-5 w-4 h-4 sm:w-5 sm:h-5 text-slate-400' />
+          <input
+            type='text'
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder='Kode QRB- atau No WhatsApp...'
+            className='w-full bg-transparent border-none py-3.5 sm:py-4 pl-10 sm:pl-14 pr-24 sm:pr-32 text-sm sm:text-[15px] font-semibold text-teal-700 placeholder:text-slate-400 focus:ring-0 outline-none'
+            required
+          />
+          <div className='absolute right-1.5 sm:right-2'>
+            <button
+              type='submit'
+              disabled={isLoading}
+              className='bg-teal-600 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm hover:bg-teal-700 transition-all active:scale-95 flex items-center justify-center min-w-[60px] sm:min-w-[80px]'>
+              {isLoading ? (
+                <Loader2 className='w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin' />
+              ) : (
+                'Lacak'
+              )}
+            </button>
+          </div>
+        </form>
+
+        <div className='space-y-6'>
+          {isLoading && (
+            <div className='bg-white rounded-2xl sm:rounded-[28px] p-5 sm:p-8 shadow-sm border border-slate-100 animate-pulse'>
+              <div className='h-40 w-full bg-slate-100 rounded-xl sm:rounded-2xl'></div>
+            </div>
+          )}
+          {!isLoading && sudahCari && hasil.length === 0 && (
+            <div className='text-center p-8 sm:p-12 bg-white rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 animate-in zoom-in-95'>
+              <div className='w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-inner'>
+                <AlertCircle className='w-8 h-8 sm:w-10 sm:h-10 text-slate-400' />
+              </div>
+              <h3 className='text-lg sm:text-xl font-bold text-slate-800 tracking-tight'>
+                Pesanan Tidak Ditemukan
+              </h3>
+              <p className='text-xs sm:text-sm text-slate-500 mt-2 max-w-[280px] mx-auto leading-relaxed'>
+                Pastikan Kode Transaksi (QRB-) atau Nomor WhatsApp yang Anda
+                masukkan sudah benar.
+              </p>
+            </div>
+          )}
+
+          {!isLoading &&
+            hasil.map((pesanan) => (
+              <div
+                key={pesanan.id}
+                className='bg-white rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out overflow-hidden'>
+                <div className='bg-white px-5 sm:px-8 py-5 flex justify-between items-center'>
+                  <div>
+                    <p className='text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-widest'>
+                      Kode Transaksi
+                    </p>
+                    <p className='text-base sm:text-lg font-bold text-teal-700 font-mono tracking-wide'>
+                      {pesanan.kode_trx}
+                    </p>
+                  </div>
+                  {/* <span className='px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase border bg-white text-slate-300 border-slate-700'>
+                    {pesanan.status_pesanan}
+                  </span> */}
+                  <span
+                    className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-md sm:rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border ${pesanan.status_pesanan === 'Booking' ? 'bg-slate-50 text-slate-600 border-slate-200' : pesanan.status_pesanan === 'Menunggu' ? 'bg-amber-50 text-amber-700 border-amber-200' : pesanan.status_pesanan === 'Lunas' || pesanan.status_pesanan === 'Selesai' || pesanan.status_pesanan === 'Terkirim' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                    {pesanan.status_pesanan}
+                  </span>
+                </div>
+
+                <div className='p-5 sm:p-8 space-y-6 sm:space-y-8'>
+                  {/* Info Mudhohi */}
+                  <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden flex justify-between items-start'>
+                    <div className='relative z-10 w-full'>
+                      <p className='text-[10px] sm:text-[11px] font-bold uppercase text-slate-400 tracking-widest'>
+                        Shohibul Kurban
+                      </p>
+                      <p className='text-lg sm:text-xl font-bold text-teal-700 tracking-tight leading-none mt-2 mb-2'>
+                        {pesanan.nama_mudhohi}
+                      </p>
+                      <p className='text-xs sm:text-sm text-slate-400 font-medium'>
+                        {pesanan.hewan.jenis} - {pesanan.hewan.tipe}
+                      </p>
+                      <UrunanProgress
+                        hewanId={pesanan.hewan_id}
+                        hewanTipe={pesanan.hewan.tipe}
+                        hewanJenis={pesanan.hewan.jenis}
+                      />
+                    </div>
+                  </div>
+                  <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden group'>
+                    <div className='relative z-10'>
+                      {pesanan.kekurangan_dana > 0 &&
+                      pesanan.status_pesanan !== 'Lunas' ? (
+                        <>
+                          <div className='space-y-2.5 sm:space-y-3 mb-4 sm:mb-5'>
+                            <div className='flex justify-between items-center text-xs sm:text-[14px]'>
+                              <span className='text-slate-500 font-medium'>
+                                Harga Kurban
+                              </span>
+                              <span className='font-bold text-slate-800'>
+                                Rp {pesanan.total_bayar.toLocaleString('id-ID')}
+                              </span>
+                            </div>
+                            <div className='flex justify-between items-center text-xs sm:text-[14px]'>
+                              <span className='text-slate-500 font-medium'>
+                                Dana Terdahulu
+                              </span>
+                              <span className='font-bold text-teal-600'>
+                                - Rp{' '}
+                                {(
+                                  pesanan.total_bayar - pesanan.kekurangan_dana
+                                ).toLocaleString('id-ID')}
+                              </span>
+                            </div>
+                          </div>
+                          <div className='border-t border-dashed border-slate-300 pt-3 sm:pt-4 flex items-center justify-between'>
+                            <p className='text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest'>
+                              Sisa Tagihan
+                            </p>
+                            <div className='text-right'>
+                              <p className='text-xl sm:text-[24px] leading-none font-bold text-slate-900 tracking-tight'>
+                                Rp{' '}
+                                {pesanan.kekurangan_dana.toLocaleString(
+                                  'id-ID',
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className='flex items-center justify-between'>
+                          <p className='text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest'>
+                            Total Nilai Kurban
+                          </p>
+                          <div className='flex flex-col items-end'>
+                            <p className='text-[17px] sm:text-[28px] leading-none font-bold text-teal-700 tracking-tight'>
+                              Rp {pesanan.total_bayar.toLocaleString('id-ID')}
+                            </p>
+                            {pesanan.status_pesanan === 'Lunas' && (
+                              <div className='inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 mt-1.5 sm:mt-2 bg-emerald-100/50 rounded-md border border-emerald-200/50 backdrop-blur-sm'>
+                                <CheckCircle2 className='w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600' />
+                                <span className='text-[9px] sm:text-[10px] font-bold text-teal-600 uppercase tracking-wider'>
+                                  Terverifikasi
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <SlaughterCountdown statusPesanan={pesanan.status_pesanan} />
+                  <SmartVerticalTracker pesanan={pesanan} />
+
+                  {pesanan.logs && pesanan.logs.length > 0 && (
+                    <div className='mt-6 border-t border-slate-100 pt-4'>
+                      <button
+                        onClick={() => setShowRiwayat(!showRiwayat)}
+                        className='w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-teal-600 transition-colors'>
+                        <span className='flex items-center gap-2'>
+                          <History className='w-4 h-4' /> Lihat Riwayat Lengkap
+                        </span>
+                        {showRiwayat ? (
+                          <ChevronUp className='w-4 h-4' />
+                        ) : (
+                          <ChevronDown className='w-4 h-4' />
+                        )}
+                      </button>
+
+                      {showRiwayat && (
+                        <div className='mt-4 pl-2 space-y-4 animate-in slide-in-from-top-2 duration-300'>
+                          {pesanan.logs.map((log: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="relative pl-5 before:content-[''] before:absolute before:left-0 before:top-1.5 before:w-2 before:h-2 before:bg-slate-300 before:rounded-full after:content-[''] after:absolute after:left-[3px] after:top-4 after:bottom-[-20px] after:w-0.5 after:bg-slate-100 last:after:hidden">
+                              <p className='text-[10px] font-bold text-slate-400'>
+                                {formatDate(log.timestamp)} • {log.oleh}
+                              </p>
+                              <p className='text-[12px] font-bold text-slate-700 leading-snug'>
+                                {log.status}
+                              </p>
+                              <p className='text-[11px] text-slate-500'>
+                                {log.catatan}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 4. GALERI FOTO SEMBELIH (DENGAN CAROUSEL) */}
+                  {(pesanan.status_pesanan === 'Selesai' ||
+                    pesanan.status_pesanan === 'Terkirim') &&
+                    pesanan.bukti_sembelih_url && (
+                      <div className='bg-teal-50/50 border border-emerald-100 rounded-2xl p-4 sm:p-5 mt-4 animate-in fade-in'>
+                        <p className='text-[10px] sm:text-[11px] font-bold uppercase text-teal-600 tracking-widest mb-3 flex items-center gap-1.5'>
+                          <CheckCircle2 className='w-4 h-4' /> Dokumentasi
+                          Penyembelihan
+                        </p>
+                        <ImageCarousel
+                          rawUrlData={pesanan.bukti_sembelih_url}
+                        />
+                      </div>
+                    )}
+
+                  {/* 5. FOTO BUKTI KURIR PENGIRIMAN DAGING */}
+                  {pesanan.status_pesanan === 'Terkirim' &&
+                    pesanan.bukti_kirim_url && (
+                      <div className='bg-teal-50/50 border border-emerald-100 rounded-2xl p-4 sm:p-5 mt-4 animate-in fade-in'>
+                        <p className='text-[10px] sm:text-[11px] font-bold uppercase text-teal-600 tracking-widest mb-3 flex items-center gap-1.5'>
+                          <PackageOpen className='w-4 h-4' /> Dokumentasi
+                          Penerimaan Daging
+                        </p>
+                        <img
+                          src={cleanUrl(pesanan.bukti_kirim_url)}
+                          alt='Bukti Kirim'
+                          className='w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm border border-blue-200/50'
+                        />
+                      </div>
+                    )}
+
+                  {(pesanan.status_pesanan === 'Booking' ||
+                    pesanan.status_pesanan === 'Ditolak' ||
+                    (pesanan.status_pesanan === 'Menunggu' &&
+                      pesanan.kekurangan_dana > 0)) && (
+                    <div className='pt-2 border-t border-slate-100'>
+                      <a
+                        href={`/kurban/konfirmasi?trx=${pesanan.kode_trx}`}
+                        className='w-full bg-teal-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-[15px] flex justify-center items-center gap-2'>
+                        Selesaikan Pembayaran <ArrowRight className='w-4 h-4' />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );

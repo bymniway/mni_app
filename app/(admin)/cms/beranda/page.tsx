@@ -353,14 +353,14 @@ export default function EditorBeranda() {
         </div>
 
         <div className='flex items-center gap-3 w-full lg:w-auto'>
-          <div className='flex flex-1 lg:flex-none items-center bg-teal-500 px-3 py-2 rounded-xl border border-gray-200'>
-            <span className='text-[10px] font-bold text-gray-100 mr-2 uppercase tracking-wider hidden sm:block'>
+          <div className='flex flex-1 lg:flex-none items-center bg-teal-100/50 px-3 py-2 rounded-xl border border-gray-200'>
+            <span className='text-[10px] font-bold text-teal-700 mr-2 uppercase tracking-wider hidden sm:block'>
               Koreksi Hijriah:
             </span>
             <select
               value={adj}
               onChange={(e) => setAdj(e.target.value)}
-              className='bg-transparent text-sm font-semibold text-white outline-none w-full lg:w-auto cursor-pointer'>
+              className='bg-transparent text-sm font-semibold text-teal-700 outline-none w-full lg:w-auto cursor-pointer'>
               <option value='-2'>-2 Hari</option>
               <option value='-1'>-1 Hari</option>
               <option value='0'>Normal (0)</option>

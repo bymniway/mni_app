@@ -18,13 +18,15 @@ export async function middleware(request: NextRequest) {
   // ==========================================
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   // script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval';
+  // const r2Url = process.env.R2_PUBLIC_URL || '';
+
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval';
     style-src 'self' 'unsafe-inline'; 
-    img-src 'self' blob: data: https://images.unsplash.com ${supabaseUrl};
+    img-src 'self' blob: data: https://images.unsplash.com ${supabaseUrl} ;
     font-src 'self';
-    connect-src 'self' ${supabaseUrl} ws://localhost:* http://localhost:* https://api.aladhan.com; 
+    connect-src 'self' ${supabaseUrl}  ws://localhost:* http://localhost:* https://api.aladhan.com; 
     object-src 'none';
     base-uri 'self';
     form-action 'self';

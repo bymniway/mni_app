@@ -24,9 +24,35 @@ export async function POST(request: Request) {
 
     const isLunas = statusTujuan === 'Lunas';
 
-    await supabase
+    // 1. Tarik log lama
+    const { data: pesananLama } = await supabase
       .from('pesanan')
-      .update({ status_pesanan: statusTujuan })
+      .select('logs')
+      .eq('id', idPesanan)
+      .single();
+
+    const currentLogs = pesananLama?.logs || [];
+
+    // 2. Buat log baru
+    const newLog = {
+      status: statusTujuan,
+      timestamp: new Date().toISOString(),
+      oleh: 'Admin Verifikator',
+      catatan:
+        statusTujuan === 'Ditolak'
+          ? alasanTolak
+          : 'Pembayaran berhasil disahkan.',
+    };
+
+    // 3. Update database
+    const { error: updateError } = await supabase
+      .from('pesanan')
+      .update({
+        status_pesanan: statusTujuan,
+        catatan_admin: statusTujuan === 'Ditolak' ? alasanTolak : null,
+        logs: [...currentLogs, newLog], // Gabungkan log lama dan baru
+        ...(isLunas ? { kekurangan_dana: 0 } : {}),
+      })
       .eq('id', idPesanan);
 
     // Dapatkan tanggal pendaftaran untuk email Lunas

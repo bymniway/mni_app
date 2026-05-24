@@ -9,6 +9,6 @@ export const DAFTAR_HALAMAN_CMS = [
   { label: 'Email Sistem', path: '/cms/email' },
   { label: 'Media Editor', path: '/cms/media' },
   { label: 'Moderasi Komentar', path: '/cms/komentar' },
-
+  { label: 'Kurban - Distribusi', path: '/cms/kurban/distribusi' },
   // ... dan menu spesifik lainnya
 ];

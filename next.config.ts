@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'sdouuctsicuhynnzdoow.supabase.co', // Mengizinkan semua gambar dari Supabase
       },
+      // {
+      //   protocol: 'https',
+      //   hostname: 'pub-f3368273148343ed891b677a80ef88d7.r2.dev', // Mengizinkan semua gambar dari r2 cloudflare
+      // },
       { protocol: 'https', hostname: 'via.placeholder.com' },
     ],
   },

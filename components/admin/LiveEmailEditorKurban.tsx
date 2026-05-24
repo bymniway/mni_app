@@ -849,6 +849,155 @@ export default function LiveEmailEditorKurban({
     </div>
   );
 
+  // DESAIN 7: DIBATALKAN / REFUND (Slate/Gray)
+  const renderDibatalkan = () => (
+    <div className='bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 font-sans max-w-[500px] mx-auto relative'>
+      <div className='bg-slate-100 p-8 text-center border-b border-slate-200 relative z-10'>
+        <XCircle className='w-16 h-16 text-slate-400 mx-auto mb-4' />
+        <h2 className='text-2xl font-black text-slate-700'>
+          <span
+            contentEditable={isEditor}
+            suppressContentEditableWarning
+            onBlur={(e) =>
+              isEditor &&
+              onTextChange(
+                'email_kurban_judul_DIBATALKAN',
+                e.currentTarget.textContent,
+              )
+            }
+            className={editableClass}>
+            {form['email_kurban_judul_DIBATALKAN'] || 'Pesanan Dibatalkan'}
+          </span>
+        </h2>
+      </div>
+      <div className='p-8 text-center relative'>
+        <p className='text-sm text-slate-600 mb-6 relative z-10'>
+          Mohon maaf <strong>[Nama Pekurban]</strong>.
+          <span
+            contentEditable={isEditor}
+            suppressContentEditableWarning
+            onBlur={(e) =>
+              isEditor &&
+              onTextChange(
+                'email_kurban_intro_DIBATALKAN',
+                e.currentTarget.textContent,
+              )
+            }
+            className={`mt-2 ${editableClass}`}>
+            {/* Jika sedang di editor dan teks mengandung {kode_trx}, kita visualisasikan dengan kode TRX simulasi agar admin tahu teksnya dinamis */}
+            {form['email_kurban_intro_DIBATALKAN']
+              ? form['email_kurban_intro_DIBATALKAN'].replace(
+                  /{kode_trx}/g,
+                  'TRX-998877',
+                )
+              : 'Pesanan kurban Anda (TRX-998877) telah resmi dibatalkan oleh sistem/panitia.'}
+          </span>
+        </p>
+        <div className='bg-slate-50 border border-slate-200 p-5 rounded-2xl text-center relative z-10 mb-8'>
+          <span
+            contentEditable={isEditor}
+            suppressContentEditableWarning
+            onBlur={(e) =>
+              isEditor &&
+              onTextChange(
+                'email_kurban_msg_utama_DIBATALKAN',
+                e.currentTarget.textContent,
+              )
+            }
+            className={`text-xs font-bold text-slate-600 leading-relaxed inline-block ${editableClass}`}>
+            {form['email_kurban_msg_utama_DIBATALKAN'] ||
+              'Jika Anda sudah melakukan pembayaran sebelumnya, panitia kami akan segera menghubungi Anda melalui WhatsApp untuk proses pengembalian dana (Refund).'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // DESAIN 8: PINDAH HEWAN (Orange/Amber)
+  const renderPindah = () => (
+    <div className='bg-white rounded-2xl shadow-2xl overflow-hidden border border-orange-200 font-sans max-w-[500px] mx-auto relative'>
+      <div className='bg-orange-500 p-8 text-center border-b border-orange-600 relative z-10'>
+        <AlertTriangle className='w-16 h-16 text-white mx-auto mb-4 opacity-90' />
+        <h2 className='text-2xl font-black text-white'>
+          <span
+            contentEditable={isEditor}
+            suppressContentEditableWarning
+            onBlur={(e) =>
+              isEditor &&
+              onTextChange(
+                'email_kurban_judul_PINDAH',
+                e.currentTarget.textContent,
+              )
+            }
+            className={editableClass}>
+            {form['email_kurban_judul_PINDAH'] || 'Perubahan Data Hewan'}
+          </span>
+        </h2>
+      </div>
+      <div className='p-8 text-center relative'>
+        <p className='text-sm text-slate-600 mb-6 relative z-10'>
+          Assalamu'alaikum <strong>[Nama Pekurban]</strong>.
+          <span
+            contentEditable={isEditor}
+            suppressContentEditableWarning
+            onBlur={(e) =>
+              isEditor &&
+              onTextChange(
+                'email_kurban_intro_PINDAH',
+                e.currentTarget.textContent,
+              )
+            }
+            className={`mt-2 ${editableClass}`}>
+            {form['email_kurban_intro_PINDAH'] ||
+              'Sesuai kesepakatan atau penyesuaian kuota, jenis hewan kurban Anda telah diperbarui.'}
+          </span>
+        </p>
+
+        {/* Simulasi Tabel Perubahan */}
+        <div className='bg-orange-50 border border-orange-100 rounded-2xl p-5 mb-6 relative z-10 text-left space-y-3'>
+          <div className='flex justify-between border-b border-orange-200 pb-2'>
+            <span className='text-xs text-orange-800 font-bold'>
+              Dari (Lama):
+            </span>
+            <span className='text-xs font-medium text-slate-500 line-through'>
+              Sapi Urunan A (Rp 3.500.000)
+            </span>
+          </div>
+          <div className='flex justify-between'>
+            <span className='text-xs text-orange-800 font-bold'>
+              Menjadi (Baru):
+            </span>
+            <span className='text-xs font-black text-orange-700'>
+              Kambing Super (Rp 3.000.000)
+            </span>
+          </div>
+          <div className='mt-2 pt-3 border-t border-orange-200 text-center'>
+            <span className='text-xs font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full'>
+              Terdapat Kelebihan Dana Rp 500.000
+            </span>
+          </div>
+        </div>
+
+        <div className='bg-slate-50 border border-slate-200 p-4 rounded-xl text-center relative z-10'>
+          <span
+            contentEditable={isEditor}
+            suppressContentEditableWarning
+            onBlur={(e) =>
+              isEditor &&
+              onTextChange(
+                'email_kurban_msg_utama_PINDAH',
+                e.currentTarget.textContent,
+              )
+            }
+            className={`text-xs font-bold text-slate-600 leading-relaxed inline-block ${editableClass}`}>
+            {form['email_kurban_msg_utama_PINDAH'] ||
+              'Admin kami akan segera menindaklanjuti selisih dana transaksi ini. Terima kasih atas pengertiannya.'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className='max-w-4xl mx-auto space-y-6'>
       {isEditor && (
@@ -880,9 +1029,21 @@ export default function LiveEmailEditorKurban({
             },
             {
               id: 'DITOLAK',
-              label: 'Dibatalkan',
+              label: 'Ditolak',
               icon: XCircle,
               color: 'text-red-500',
+            },
+            {
+              id: 'DIBATALKAN',
+              label: 'Dibatalkan',
+              icon: XCircle,
+              color: 'text-slate-500',
+            },
+            {
+              id: 'PINDAH',
+              label: 'Dipindahkan',
+              icon: Layout,
+              color: 'text-orange-500',
             },
             {
               id: 'SELESAI',
@@ -912,6 +1073,8 @@ export default function LiveEmailEditorKurban({
             {activeTab === 'TAGIHAN' && renderTagihan()}
             {activeTab === 'MENUNGGU' && renderMenunggu()}
             {activeTab === 'DITOLAK' && renderDitolak()}
+            {activeTab === 'DIBATALKAN' && renderDibatalkan()}
+            {activeTab === 'PINDAH' && renderPindah()}
             {activeTab === 'SELESAI' && renderSelesai()}
           </motion.div>
         </AnimatePresence>
