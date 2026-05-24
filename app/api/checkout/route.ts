@@ -169,7 +169,7 @@ export async function POST(request: Request) {
         );
         const btnLink = getVal(
           'email_kurban_btn_link_TAGIHAN',
-          'https://wa.me/6281234567890',
+          `https://mni-app.vercel.app/kurban/konfirmasi?trx=${dataHtml.kodeTrx}`,
         );
 
         return `
@@ -215,10 +215,13 @@ export async function POST(request: Request) {
           'email_kurban_intro_AWAL_BOOKING',
           'Alhamdulillah Bpk/Ibu/Sdr/i, slot hewan kurban Anda berhasil diamankan. Silakan segera lakukan pembayaran/DP agar pesanan dapat kami verifikasi sepenuhnya.',
         );
-        const btnText = getVal('email_ziswaf_btn_text_MENUNGGU', 'Cek Status');
+        const btnText = getVal(
+          'email_kurban_btn_text_AWAL_BOOKING',
+          'Cek Status',
+        );
         const btnLink = getVal(
-          'email_ziswaf_btn_link_MENUNGGU',
-          'https://mni-app.vercel.app/kurban/status',
+          'email_kurban_btn_link_AWAL_BOOKING',
+          `https://mni-app.vercel.app/kurban/status?trx=${dataHtml.kodeTrx}`,
         );
 
         return `
@@ -260,10 +263,10 @@ export async function POST(request: Request) {
         'email_kurban_intro_MENUNGGU',
         'Terima kasih telah mendaftar. Bukti pembayaran/DP Kurban Anda sedang ditinjau oleh panitia.',
       );
-      const btnText = getVal('email_ziswaf_btn_text_MENUNGGU', 'Cek Status');
+      const btnText = getVal('email_kurban_btn_text_MENUNGGU', 'Cek Status');
       const btnLink = getVal(
-        'email_ziswaf_btn_link_MENUNGGU',
-        'https://mni-app.vercel.app/kurban/status',
+        'email_kurban_btn_link_MENUNGGU',
+        `https://mni-app.vercel.app/kurban/status?trx=${dataHtml.kodeTrx}`,
       );
 
       return `
