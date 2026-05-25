@@ -242,7 +242,7 @@ export default function KonfirmasiPage() {
   const getWaLink = () => {
     if (!pesanan) return '#';
     const msg = `Halo Panitia Kurban MNI, saya ${pesanan.nama_mudhohi}, terkait transaksi ${pesanan.kode_trx} dengan status ${pesanan.status_pesanan}. Mohon bantuannya.`;
-    return `https://wa.me/6281234567890?text=${encodeURIComponent(msg)}`;
+    return `https://wa.me/6285777577330?text=${encodeURIComponent(msg)}`;
   };
 
   // Helper untuk format tanggal yang aman dari Invalid Date
@@ -594,7 +594,7 @@ export default function KonfirmasiPage() {
                 rel='noopener noreferrer'
                 className='inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-600 hover:text-teal-700 transition-colors text-[11px] sm:text-sm font-semibold border border-slate-100'>
                 <MessageCircle className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500' />{' '}
-                Kendala? Chat Admin
+                Kendala? Chat Panitia Kurban MNI
               </a>
             </div>
           </div>
