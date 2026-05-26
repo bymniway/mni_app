@@ -22,15 +22,15 @@ export async function middleware(request: NextRequest) {
 
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live;
     style-src 'self' 'unsafe-inline'; 
-    img-src 'self' blob: data: https://images.unsplash.com ${supabaseUrl} https://*.aliyuncs.com https://firebasestorage.googleapis.com  https://storage.googleapis.com https://res.cloudinary.com;
-    font-src 'self';
-    connect-src 'self' ${supabaseUrl}  ws://localhost:* http://localhost:* https://api.aladhan.com; 
+    img-src 'self' blob: data: https://images.unsplash.com ${supabaseUrl} https://*.aliyuncs.com https://firebasestorage.googleapis.com https://storage.googleapis.com https://res.cloudinary.com https://vercel.live https://vercel.com;
+    font-src 'self' https://vercel.live;
+    connect-src 'self' ${supabaseUrl} ws://localhost:* http://localhost:* https://api.aladhan.com https://vercel.live wss://ws-mt1.pusher.com; 
     object-src 'none';
     base-uri 'self';
     form-action 'self';
-    frame-src 'self' https://www.google.com http://googleusercontent.com;
+    frame-src 'self' https://www.google.com http://googleusercontent.com https://vercel.live;
     frame-ancestors 'none';
   `
     .replace(/\s{2,}/g, ' ')
