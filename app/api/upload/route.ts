@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     const provider = (formData.get('provider') as string) || 'ALIBABA';
     // Menangkap folder tujuan untuk manajemen file yang rapi
     const folder = (formData.get('folder') as string) || 'umum';
+    console.log('Provider yang diterima:', provider);
 
     if (!file) {
       return NextResponse.json(
