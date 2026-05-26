@@ -226,7 +226,7 @@ export async function POST(request: Request) {
     await transporter.sendMail({
       from: `"Panitia Kurban MNI" <${process.env.EMAIL_USER}>`,
       to: emailUser,
-      subject: isLunas ? `✅ LUNAS: ${kodeTrx}` : `❌ DITOLAK: ${kodeTrx}`,
+      subject: isLunas ? `LUNAS: ${kodeTrx}` : `DITOLAK: ${kodeTrx}`,
       html: `<div style="background-color: #f8fafc; padding: 40px 10px;">${htmlBody}</div>`,
     });
 

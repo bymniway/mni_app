@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval';
     style-src 'self' 'unsafe-inline'; 
-    img-src 'self' blob: data: https://images.unsplash.com ${supabaseUrl} ;
+    img-src 'self' blob: data: https://images.unsplash.com ${supabaseUrl} https://*.aliyuncs.com https://firebasestorage.googleapis.com  https://storage.googleapis.com https://res.cloudinary.com;
     font-src 'self';
     connect-src 'self' ${supabaseUrl}  ws://localhost:* http://localhost:* https://api.aladhan.com; 
     object-src 'none';
@@ -206,5 +206,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    // Tambahkan api/upload ke dalam daftar pengecualian (bypass)
+    '/((?!api/upload|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };

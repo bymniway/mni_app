@@ -150,7 +150,9 @@ export default function PengaturanZiswafPage() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('bucket', 'mni-assets');
+    formData.append('provider', 'ALIBABA');
+    // Mengelompokkan gambar ke dalam folder khusus agar rapi di dasbor Alibaba
+    formData.append('folder', 'ziswaf-katalog-assets');
 
     try {
       const res = await fetch('/api/upload', {

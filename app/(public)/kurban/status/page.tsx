@@ -474,16 +474,360 @@ const SmartVerticalTracker = ({ pesanan }: { pesanan: any }) => {
   );
 };
 
+// // ==========================================
+// // KOMPONEN UTAMA
+// // ==========================================
+// export default function LacakStatusPage() {
+//   const searchParams = useSearchParams();
+//   const [keyword, setKeyword] = useState('');
+
+//   const [hasil, setHasil] = useState<any[]>([]);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [sudahCari, setSudahCari] = useState(false);
+
+//   // ==========================================
+//   // LOGIKA PENCARIAN PINTAR (SMART SEARCH)
+//   // ==========================================
+//   const eksekusiCariStatus = useCallback(async (targetKeyword: string) => {
+//     if (!targetKeyword) return;
+//     const cleanKeyword = targetKeyword.trim();
+
+//     // 1. Deteksi menggunakan Regex: Apakah isinya MURNI angka semua?
+//     const isMurniAngka = /^\d+$/.test(cleanKeyword);
+
+//     // Jika murni angka (pencarian WA), blokir kalau kurang dari 4 digit
+//     if (isMurniAngka && cleanKeyword.length < 4) {
+//       alert('Masukkan minimal 4 digit nomor WhatsApp untuk mencari.');
+//       return;
+//     }
+
+//     setIsLoading(true);
+//     setSudahCari(true);
+
+//     try {
+//       // 2. Siapkan Query Dasar
+//       let supabaseQuery = supabase
+//         .from('pesanan')
+//         .select('*, hewan(jenis, tipe, harga)');
+
+//       // 3. Cabangkan Logika Query
+//       if (isMurniAngka) {
+//         // Logika WA: Fleksibel cari kecocokan nomor (%0812%)
+//         supabaseQuery = supabaseQuery.ilike('whatsapp', `%${cleanKeyword}%`);
+//       } else {
+//         // Logika TRX: Pasti ada hurufnya, jadi WAJIB sama persis (QRB-MNI-...)
+//         supabaseQuery = supabaseQuery.eq(
+//           'kode_trx',
+//           cleanKeyword.toUpperCase(),
+//         );
+//       }
+
+//       // 4. Eksekusi Query ke Database
+//       const { data, error } = await supabaseQuery.order('created_at', {
+//         ascending: false,
+//       });
+
+//       if (error) throw error;
+//       setHasil(data || []);
+//     } catch (error) {
+//       console.error(error);
+//       alert('Gagal mencari data. Silakan coba lagi.');
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   }, []);
+
+//   // AUTO-SEARCH DARI EMAIL URL (?trx=...)
+//   useEffect(() => {
+//     const trx = searchParams.get('trx');
+//     if (trx) {
+//       setKeyword(trx);
+//       eksekusiCariStatus(trx);
+//     }
+//   }, [searchParams, eksekusiCariStatus]);
+
+//   // MANUAL SEARCH DARI FORM INPUT
+//   const cariStatus = (e: React.FormEvent) => {
+//     e.preventDefault();
+//     eksekusiCariStatus(keyword);
+//   };
+
+//   const [showRiwayat, setShowRiwayat] = useState(false);
+
+//   return (
+//     <div className='min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 font-sans selection:bg-teal-100 selection:text-teal-900'>
+//       <div className='max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out'>
+//         {/* Header & Search Bar (Sama seperti sebelumnya) */}
+//         <div className='text-center space-y-1.5 sm:space-y-2'>
+//           <h1 className='text-2xl sm:text-[28px] leading-tight font-extrabold text-teal-600 tracking-tight'>
+//             Lacak Status Kurban
+//           </h1>
+//           <p className='text-xs sm:text-[15px] text-slate-500 font-medium'>
+//             Pantau progress pendaftaran dan penyaluran kurban Anda.
+//           </p>
+//         </div>
+
+//         <form
+//           onSubmit={cariStatus}
+//           className='relative flex items-center shadow-sm rounded-xl sm:rounded-2xl bg-white transition-all focus-within:shadow-md focus-within:ring-1 focus-within:ring-teal-500/20 border border-slate-200/80'>
+//           <Search className='absolute left-4 sm:left-5 w-4 h-4 sm:w-5 sm:h-5 text-slate-400' />
+//           <input
+//             type='text'
+//             value={keyword}
+//             onChange={(e) => setKeyword(e.target.value)}
+//             placeholder='Kode QRB- atau No WhatsApp...'
+//             className='w-full bg-transparent border-none py-3.5 sm:py-4 pl-10 sm:pl-14 pr-24 sm:pr-32 text-sm sm:text-[15px] font-semibold text-teal-700 placeholder:text-slate-400 focus:ring-0 outline-none'
+//             required
+//           />
+//           <div className='absolute right-1.5 sm:right-2'>
+//             <button
+//               type='submit'
+//               disabled={isLoading}
+//               className='bg-teal-600 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm hover:bg-teal-700 transition-all active:scale-95 flex items-center justify-center min-w-[60px] sm:min-w-[80px]'>
+//               {isLoading ? (
+//                 <Loader2 className='w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin' />
+//               ) : (
+//                 'Lacak'
+//               )}
+//             </button>
+//           </div>
+//         </form>
+
+//         <div className='space-y-6'>
+//           {isLoading && (
+//             <div className='bg-white rounded-2xl sm:rounded-[28px] p-5 sm:p-8 shadow-sm border border-slate-100 animate-pulse'>
+//               <div className='h-40 w-full bg-slate-100 rounded-xl sm:rounded-2xl'></div>
+//             </div>
+//           )}
+//           {!isLoading && sudahCari && hasil.length === 0 && (
+//             <div className='text-center p-8 sm:p-12 bg-white rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 animate-in zoom-in-95'>
+//               <div className='w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-inner'>
+//                 <AlertCircle className='w-8 h-8 sm:w-10 sm:h-10 text-slate-400' />
+//               </div>
+//               <h3 className='text-lg sm:text-xl font-bold text-slate-800 tracking-tight'>
+//                 Pesanan Tidak Ditemukan
+//               </h3>
+//               <p className='text-xs sm:text-sm text-slate-500 mt-2 max-w-[280px] mx-auto leading-relaxed'>
+//                 Pastikan Kode Transaksi (QRB-) atau Nomor WhatsApp yang Anda
+//                 masukkan sudah benar.
+//               </p>
+//             </div>
+//           )}
+
+//           {!isLoading &&
+//             hasil.map((pesanan) => (
+//               <div
+//                 key={pesanan.id}
+//                 className='bg-white rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out overflow-hidden'>
+//                 <div className='bg-white px-5 sm:px-8 py-5 flex justify-between items-center'>
+//                   <div>
+//                     <p className='text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-widest'>
+//                       Kode Transaksi
+//                     </p>
+//                     <p className='text-base sm:text-lg font-bold text-teal-700 font-mono tracking-wide'>
+//                       {pesanan.kode_trx}
+//                     </p>
+//                   </div>
+//                   {/* <span className='px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase border bg-white text-slate-300 border-slate-700'>
+//                     {pesanan.status_pesanan}
+//                   </span> */}
+//                   <span
+//                     className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-md sm:rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border ${pesanan.status_pesanan === 'Booking' ? 'bg-slate-50 text-slate-600 border-slate-200' : pesanan.status_pesanan === 'Menunggu' ? 'bg-amber-50 text-amber-700 border-amber-200' : pesanan.status_pesanan === 'Lunas' || pesanan.status_pesanan === 'Selesai' || pesanan.status_pesanan === 'Terkirim' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+//                     {pesanan.status_pesanan}
+//                   </span>
+//                 </div>
+
+//                 <div className='p-5 sm:p-8 space-y-6 sm:space-y-8'>
+//                   {/* Info Mudhohi */}
+//                   <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden flex justify-between items-start'>
+//                     <div className='relative z-10 w-full'>
+//                       <p className='text-[10px] sm:text-[11px] font-bold uppercase text-slate-400 tracking-widest'>
+//                         Shohibul Kurban
+//                       </p>
+//                       <p className='text-lg sm:text-xl font-bold text-teal-700 tracking-tight leading-none mt-2 mb-2'>
+//                         {pesanan.nama_mudhohi}
+//                       </p>
+//                       <p className='text-xs sm:text-sm text-slate-400 font-medium'>
+//                         {pesanan.hewan.jenis} - {pesanan.hewan.tipe}
+//                       </p>
+//                       <UrunanProgress
+//                         hewanId={pesanan.hewan_id}
+//                         hewanTipe={pesanan.hewan.tipe}
+//                         hewanJenis={pesanan.hewan.jenis}
+//                       />
+//                     </div>
+//                   </div>
+//                   <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden group'>
+//                     <div className='relative z-10'>
+//                       {pesanan.kekurangan_dana > 0 &&
+//                       pesanan.status_pesanan !== 'Lunas' ? (
+//                         <>
+//                           <div className='space-y-2.5 sm:space-y-3 mb-4 sm:mb-5'>
+//                             <div className='flex justify-between items-center text-xs sm:text-[14px]'>
+//                               <span className='text-slate-500 font-medium'>
+//                                 Harga Kurban
+//                               </span>
+//                               <span className='font-bold text-slate-800'>
+//                                 Rp {pesanan.total_bayar.toLocaleString('id-ID')}
+//                               </span>
+//                             </div>
+//                             <div className='flex justify-between items-center text-xs sm:text-[14px]'>
+//                               <span className='text-slate-500 font-medium'>
+//                                 Dana Terdahulu
+//                               </span>
+//                               <span className='font-bold text-teal-600'>
+//                                 - Rp{' '}
+//                                 {(
+//                                   pesanan.total_bayar - pesanan.kekurangan_dana
+//                                 ).toLocaleString('id-ID')}
+//                               </span>
+//                             </div>
+//                           </div>
+//                           <div className='border-t border-dashed border-slate-300 pt-3 sm:pt-4 flex items-center justify-between'>
+//                             <p className='text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest'>
+//                               Sisa Tagihan
+//                             </p>
+//                             <div className='text-right'>
+//                               <p className='text-xl sm:text-[24px] leading-none font-bold text-slate-900 tracking-tight'>
+//                                 Rp{' '}
+//                                 {pesanan.kekurangan_dana.toLocaleString(
+//                                   'id-ID',
+//                                 )}
+//                               </p>
+//                             </div>
+//                           </div>
+//                         </>
+//                       ) : (
+//                         <div className='flex items-center justify-between'>
+//                           <p className='text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest'>
+//                             Total Nilai Kurban
+//                           </p>
+//                           <div className='flex flex-col items-end'>
+//                             <p className='text-[17px] sm:text-[28px] leading-none font-bold text-teal-700 tracking-tight'>
+//                               Rp {pesanan.total_bayar.toLocaleString('id-ID')}
+//                             </p>
+//                             {pesanan.status_pesanan === 'Lunas' && (
+//                               <div className='inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 mt-1.5 sm:mt-2 bg-emerald-100/50 rounded-md border border-emerald-200/50 backdrop-blur-sm'>
+//                                 <CheckCircle2 className='w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600' />
+//                                 <span className='text-[9px] sm:text-[10px] font-bold text-teal-600 uppercase tracking-wider'>
+//                                   Terverifikasi
+//                                 </span>
+//                               </div>
+//                             )}
+//                           </div>
+//                         </div>
+//                       )}
+//                     </div>
+//                   </div>
+
+//                   <SlaughterCountdown statusPesanan={pesanan.status_pesanan} />
+//                   <SmartVerticalTracker pesanan={pesanan} />
+
+//                   {pesanan.logs && pesanan.logs.length > 0 && (
+//                     <div className='mt-6 border-t border-slate-100 pt-4'>
+//                       <button
+//                         onClick={() => setShowRiwayat(!showRiwayat)}
+//                         className='w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-teal-600 transition-colors'>
+//                         <span className='flex items-center gap-2'>
+//                           <History className='w-4 h-4' /> Lihat Riwayat Lengkap
+//                         </span>
+//                         {showRiwayat ? (
+//                           <ChevronUp className='w-4 h-4' />
+//                         ) : (
+//                           <ChevronDown className='w-4 h-4' />
+//                         )}
+//                       </button>
+
+//                       {showRiwayat && (
+//                         <div className='mt-4 pl-2 space-y-4 animate-in slide-in-from-top-2 duration-300'>
+//                           {pesanan.logs.map((log: any, idx: number) => (
+//                             <div
+//                               key={idx}
+//                               className="relative pl-5 before:content-[''] before:absolute before:left-0 before:top-1.5 before:w-2 before:h-2 before:bg-slate-300 before:rounded-full after:content-[''] after:absolute after:left-[3px] after:top-4 after:bottom-[-20px] after:w-0.5 after:bg-slate-100 last:after:hidden">
+//                               <p className='text-[10px] font-bold text-slate-400'>
+//                                 {formatDate(log.timestamp)} • {log.oleh}
+//                               </p>
+//                               <p className='text-[12px] font-bold text-slate-700 leading-snug'>
+//                                 {log.status}
+//                               </p>
+//                               <p className='text-[11px] text-slate-500'>
+//                                 {log.catatan}
+//                               </p>
+//                             </div>
+//                           ))}
+//                         </div>
+//                       )}
+//                     </div>
+//                   )}
+
+//                   {/* 4. GALERI FOTO SEMBELIH (DENGAN CAROUSEL) */}
+//                   {(pesanan.status_pesanan === 'Selesai' ||
+//                     pesanan.status_pesanan === 'Terkirim') &&
+//                     pesanan.bukti_sembelih_url && (
+//                       <div className='bg-teal-50/50 border border-emerald-100 rounded-2xl p-4 sm:p-5 mt-4 animate-in fade-in'>
+//                         <p className='text-[10px] sm:text-[11px] font-bold uppercase text-teal-600 tracking-widest mb-3 flex items-center gap-1.5'>
+//                           <CheckCircle2 className='w-4 h-4' /> Dokumentasi
+//                           Penyembelihan
+//                         </p>
+//                         <ImageCarousel
+//                           rawUrlData={pesanan.bukti_sembelih_url}
+//                         />
+//                       </div>
+//                     )}
+
+//                   {/* 5. FOTO BUKTI KURIR PENGIRIMAN DAGING */}
+//                   {pesanan.status_pesanan === 'Terkirim' &&
+//                     pesanan.bukti_kirim_url && (
+//                       <div className='bg-teal-50/50 border border-emerald-100 rounded-2xl p-4 sm:p-5 mt-4 animate-in fade-in'>
+//                         <p className='text-[10px] sm:text-[11px] font-bold uppercase text-teal-600 tracking-widest mb-3 flex items-center gap-1.5'>
+//                           <PackageOpen className='w-4 h-4' /> Dokumentasi
+//                           Penerimaan Daging
+//                         </p>
+//                         <img
+//                           src={cleanUrl(pesanan.bukti_kirim_url)}
+//                           alt='Bukti Kirim'
+//                           className='w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm border border-blue-200/50'
+//                         />
+//                       </div>
+//                     )}
+
+//                   {(pesanan.status_pesanan === 'Booking' ||
+//                     pesanan.status_pesanan === 'Ditolak' ||
+//                     (pesanan.status_pesanan === 'Menunggu' &&
+//                       pesanan.kekurangan_dana > 0)) && (
+//                     <div className='pt-2 border-t border-slate-100'>
+//                       <a
+//                         href={`/kurban/konfirmasi?trx=${pesanan.kode_trx}`}
+//                         className='w-full bg-teal-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-[15px] flex justify-center items-center gap-2'>
+//                         Selesaikan Pembayaran <ArrowRight className='w-4 h-4' />
+//                       </a>
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+//
+//
+//
 // ==========================================
-// KOMPONEN UTAMA
+// KOMPONEN ISI (DIPISAH AGAR BISA DIBUNGKUS SUSPENSE)
 // ==========================================
-export default function LacakStatusPage() {
+function StatusContent() {
   const searchParams = useSearchParams();
   const [keyword, setKeyword] = useState('');
 
   const [hasil, setHasil] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sudahCari, setSudahCari] = useState(false);
+
+  // 1. TAMBAHKAN GEMBOK REFERENSI
+  // Ini mencegah auto-search berulang-ulang yang menimpa pencarian manual jamaah
+  const hasAutoSearched = useRef(false);
 
   // ==========================================
   // LOGIKA PENCARIAN PINTAR (SMART SEARCH)
@@ -492,10 +836,8 @@ export default function LacakStatusPage() {
     if (!targetKeyword) return;
     const cleanKeyword = targetKeyword.trim();
 
-    // 1. Deteksi menggunakan Regex: Apakah isinya MURNI angka semua?
     const isMurniAngka = /^\d+$/.test(cleanKeyword);
 
-    // Jika murni angka (pencarian WA), blokir kalau kurang dari 4 digit
     if (isMurniAngka && cleanKeyword.length < 4) {
       alert('Masukkan minimal 4 digit nomor WhatsApp untuk mencari.');
       return;
@@ -505,24 +847,21 @@ export default function LacakStatusPage() {
     setSudahCari(true);
 
     try {
-      // 2. Siapkan Query Dasar
+      // Catatan: Pastikan tabel 'hewan' Mas benar-benar punya kolom 'harga'.
+      // Jika tidak ada, hapus kata 'harga' di bawah ini agar tidak error Supabase.
       let supabaseQuery = supabase
         .from('pesanan')
         .select('*, hewan(jenis, tipe, harga)');
 
-      // 3. Cabangkan Logika Query
       if (isMurniAngka) {
-        // Logika WA: Fleksibel cari kecocokan nomor (%0812%)
         supabaseQuery = supabaseQuery.ilike('whatsapp', `%${cleanKeyword}%`);
       } else {
-        // Logika TRX: Pasti ada hurufnya, jadi WAJIB sama persis (QRB-MNI-...)
         supabaseQuery = supabaseQuery.eq(
           'kode_trx',
           cleanKeyword.toUpperCase(),
         );
       }
 
-      // 4. Eksekusi Query ke Database
       const { data, error } = await supabaseQuery.order('created_at', {
         ascending: false,
       });
@@ -537,12 +876,19 @@ export default function LacakStatusPage() {
     }
   }, []);
 
-  // AUTO-SEARCH DARI EMAIL URL (?trx=...)
+  // ==========================================
+  // 2. AUTO-SEARCH DARI EMAIL URL (?trx=...) YANG SUDAH DIKUNCI
+  // ==========================================
   useEffect(() => {
     const trx = searchParams.get('trx');
-    if (trx) {
+
+    // Syarat jalan: Ada trx di URL DAN belum pernah auto-search sebelumnya
+    if (trx && !hasAutoSearched.current) {
       setKeyword(trx);
       eksekusiCariStatus(trx);
+
+      // Kunci gemboknya! Agar ketikan manual user tidak dibajak efek ini nantinya
+      hasAutoSearched.current = true;
     }
   }, [searchParams, eksekusiCariStatus]);
 
@@ -557,7 +903,7 @@ export default function LacakStatusPage() {
   return (
     <div className='min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 font-sans selection:bg-teal-100 selection:text-teal-900'>
       <div className='max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out'>
-        {/* Header & Search Bar (Sama seperti sebelumnya) */}
+        {/* Header & Search Bar */}
         <div className='text-center space-y-1.5 sm:space-y-2'>
           <h1 className='text-2xl sm:text-[28px] leading-tight font-extrabold text-teal-600 tracking-tight'>
             Lacak Status Kurban
@@ -628,9 +974,6 @@ export default function LacakStatusPage() {
                       {pesanan.kode_trx}
                     </p>
                   </div>
-                  {/* <span className='px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase border bg-white text-slate-300 border-slate-700'>
-                    {pesanan.status_pesanan}
-                  </span> */}
                   <span
                     className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-md sm:rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border ${pesanan.status_pesanan === 'Booking' ? 'bg-slate-50 text-slate-600 border-slate-200' : pesanan.status_pesanan === 'Menunggu' ? 'bg-amber-50 text-amber-700 border-amber-200' : pesanan.status_pesanan === 'Lunas' || pesanan.status_pesanan === 'Selesai' || pesanan.status_pesanan === 'Terkirim' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                     {pesanan.status_pesanan}
@@ -809,5 +1152,24 @@ export default function LacakStatusPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ==========================================
+// 3. KOMPONEN PEMBUNGKUS UTAMA (WAJIB ADA SUSPENSE!)
+// ==========================================
+import { Suspense } from 'react'; // Pastikan ini diimpor dari react
+
+export default function LacakStatusPage() {
+  return (
+    // Jika jamaah internetnya lambat, teks ini akan muncul sejenak saat Next.js merakit halaman
+    <Suspense
+      fallback={
+        <div className='min-h-screen flex items-center justify-center text-teal-700 font-bold'>
+          Memuat halaman pelacakan...
+        </div>
+      }>
+      <StatusContent />
+    </Suspense>
   );
 }

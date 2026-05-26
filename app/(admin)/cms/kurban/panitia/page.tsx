@@ -172,29 +172,75 @@ export default function EditorHalamanKurban() {
       },
     ]);
 
+  // const handleImageUpload = async (
+  //   id: number,
+  //   e: React.ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   const file = e.target.files?.[0];
+  //   if (!file) return;
+  //   setIsUploading(true);
+  //   const formData = new FormData();
+  //   formData.append('file', file);
+  //   formData.append('bucket', 'mni-assets');
+  //   try {
+  //     const res = await fetch('/api/upload', {
+  //       method: 'POST',
+  //       body: formData,
+  //     });
+  //     const result = await res.json();
+  //     if (result.url)
+  //       setPanitiaList((prev) =>
+  //         prev.map((p) => (p.id === id ? { ...p, foto_url: result.url } : p)),
+  //       );
+  //   } catch (error) {
+  //     alert('Gagal upload gambar.');
+  //   } finally {
+  //     setIsUploading(false);
+  //   }
+  // };
+
   const handleImageUpload = async (
     id: number,
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
+    // Mengambil satu gambar saja dari input
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Menyalakan efek loading di layar
     setIsUploading(true);
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('bucket', 'mni-assets');
+
+    // 1. INSTRUKSI MULTI-CLOUD (CLOUDINARY)
+    // Mengarahkan berkas ke Cloudinary khusus untuk optimasi aset antarmuka
+    formData.append('provider', 'CLOUDINARY');
+    // Mengelompokkan gambar ke folder khusus agar rapi di dasbor Cloudinary
+    formData.append('folder', 'panitia-assets');
+
     try {
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
+
       const result = await res.json();
-      if (result.url)
+
+      // 2. PEMBARUAN STATE UI SECARA LANGSUNG
+      if (res.ok && result.url) {
         setPanitiaList((prev) =>
           prev.map((p) => (p.id === id ? { ...p, foto_url: result.url } : p)),
         );
+      } else {
+        alert(`Gagal upload gambar: ${result.error}`);
+        console.error('Error dari API:', result.error);
+      }
     } catch (error) {
-      alert('Gagal upload gambar.');
+      console.error('Koneksi terputus:', error);
+      alert('Koneksi jaringan bermasalah saat upload gambar.');
     } finally {
+      // Mematikan efek loading terlepas dari sukses atau gagal
       setIsUploading(false);
     }
   };

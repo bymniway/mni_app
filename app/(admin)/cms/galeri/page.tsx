@@ -14,9 +14,6 @@ export default function EditorGaleri() {
   const [form, setForm] = useState({ judul: '', deskripsi: '' });
   const [galleryList, setGalleryList] = useState<any[]>([]);
 
-  // PENTING: State selectedIds dan isSelectionMode sudah DIBERSIHKAN dari sini
-  // karena logika multi-select-nya sudah diurus secara mandiri oleh komponen Child (GaleriKegiatan)
-
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase.from('pengaturan_web').select('*');
@@ -84,18 +81,26 @@ export default function EditorGaleri() {
     for (const file of files) {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('bucket', 'mni-assets');
+
+      formData.append('provider', 'ALIBABA');
+
+      formData.append('folder', 'galeri');
+
       try {
         const res = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
         });
+
         const result = await res.json();
-        if (result.url) {
+
+        if (res.ok && result.url) {
           uploadedUrls.push(result.url);
+        } else {
+          console.error(`Gagal memproses ${file.name}:`, result.error);
         }
       } catch (error) {
-        console.error('Gagal upload gambar:', error);
+        console.error(`Koneksi terputus saat mengunggah ${file.name}:`, error);
       }
     }
 
@@ -133,11 +138,7 @@ export default function EditorGaleri() {
     alert('Galeri berhasil dipublikasikan!');
   };
 
-  // ==========================================
-  // FUNGSI BARU: TANGKAP ARRAY ID DARI CHILD, LALU HAPUS DARI STATE
-  // ==========================================
   const handleBulkDelete = (idsToDelete: string[]) => {
-    // Hapus array ID terpilih dari daftar galeri yang ada di layar (tanpa alert confirm lagi)
     setGalleryList((prev) => prev.filter((p) => !idsToDelete.includes(p.id)));
   };
 
@@ -213,9 +214,6 @@ export default function EditorGaleri() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className='bg-gray-50 -mx-4 md:-mx-8 px-4 md:px-8 py-8 min-h-screen relative z-10'>
-        {/* ==========================================
-            PEMBUNGKUS COMPONENT GALERI YANG SUDAH TERHUBUNG
-            ========================================== */}
         <GaleriKegiatan
           data={form}
           galleryList={galleryList}
@@ -224,7 +222,7 @@ export default function EditorGaleri() {
           onItemUpdate={handleItemUpdate}
           onItemDelete={handleItemDelete}
           onImageUpload={handleImageUpload}
-          onBulkDelete={handleBulkDelete} // <-- INI DIA PENGHUBUNGNYA! 🚀
+          onBulkDelete={handleBulkDelete}
         />
       </motion.div>
     </div>

@@ -262,7 +262,10 @@ const RichTextEditor = ({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('bucket', 'mni-assets');
+      // Mengarahkan berkas ke Cloudinary khusus untuk optimasi aset antarmuka
+      formData.append('provider', 'CLOUDINARY');
+      // Mengelompokkan gambar ke folder khusus agar rapi di dasbor Cloudinary
+      formData.append('folder', 'media-assets');
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -917,7 +920,10 @@ export default function AdminMediaCMS() {
     try {
       const uploadData = new FormData();
       uploadData.append('file', file);
-      uploadData.append('bucket', 'mni-assets');
+      // Mengarahkan berkas ke Cloudinary khusus untuk optimasi aset antarmuka
+      uploadData.append('provider', 'CLOUDINARY');
+      // Mengelompokkan gambar ke folder khusus agar rapi di dasbor Cloudinary
+      uploadData.append('folder', 'media-assets');
 
       const res = await fetch('/api/upload', {
         method: 'POST',

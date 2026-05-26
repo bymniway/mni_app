@@ -102,6 +102,8 @@ export default function HeroBeranda({
   onFasilitasDelete,
   onFasilitasUpdate,
   onQuoteUpdate,
+  onImageUpload,
+  onImageRemove,
 }: any) {
   const staggerContainer = {
     hidden: { opacity: 0 },
@@ -704,8 +706,59 @@ export default function HeroBeranda({
           <motion.div
             variants={fadeInUp}
             className='md:w-2/5 flex justify-center'>
-            <div className='w-64 h-64 bg-gradient-to-tr from-green-400/20 to-white/10 rounded-full border-4 border-white/20 backdrop-blur-sm flex items-center justify-center shadow-2xl'>
-              <MapPin className='w-14 h-14 mx-auto mb-2 opacity-80' />
+            <div className='relative w-64 h-64 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl group flex items-center justify-center bg-gradient-to-tr from-green-400/20 to-white/10 backdrop-blur-sm'>
+              {/* JIKA GAMBAR SUDAH ADA */}
+              {data?.gambar_url ? (
+                <>
+                  <img
+                    src={data.gambar_url}
+                    alt='Hero MNI'
+                    className='w-full h-full object-cover'
+                  />
+
+                  {/* Overlay Menu Editor saat kursor mendekat */}
+                  {isEditor && (
+                    <div className='absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 gap-3'>
+                      <label className='text-gray-300 px-4 py-2 rounded-full text-sm font-normal cursor-pointer hover:bg-teal-600 hover:text-white transition-colors shadow-lg'>
+                        Ganti Gambar
+                        <input
+                          type='file'
+                          accept='image/*'
+                          className='hidden'
+                          // Kita kirim angka 0 untuk parameter ID sesuai permintaan fungsi induk
+                          onChange={(e) => onImageUpload && onImageUpload(0, e)}
+                        />
+                      </label>
+                      <button
+                        type='button'
+                        onClick={onImageRemove}
+                        className='text-gray-300 px-4 py-2 rounded-full text-sm font-normal hover:bg-red-600 hover:text-white transition-colors shadow-lg'>
+                        Hapus
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* JIKA GAMBAR BELUM ADA (KOSONG) */
+                <>
+                  <MapPin className='w-14 h-14 opacity-80 text-white' />
+
+                  {/* Overlay Upload Pertama Kali */}
+                  {isEditor && (
+                    <label className='absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10'>
+                      <span className='text-gray-300 hover:text-white text-sm font-semibold'>
+                        Unggah Gambar
+                      </span>
+                      <input
+                        type='file'
+                        accept='image/*'
+                        className='hidden'
+                        onChange={(e) => onImageUpload && onImageUpload(0, e)}
+                      />
+                    </label>
+                  )}
+                </>
+              )}
             </div>
           </motion.div>
         </div>

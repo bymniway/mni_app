@@ -14,7 +14,6 @@ export default function EditorKajian() {
   const [form, setForm] = useState({ judul: '', deskripsi: '' });
   const [kajianList, setKajianList] = useState<any[]>([]);
 
-  // STATE BARU: MULTI-SELECT KAJIAN (Catatan: ID kajian bertipe number)
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const isSelectionMode = selectedIds.length > 0;
 
@@ -74,23 +73,34 @@ export default function EditorKajian() {
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setIsUploading(true);
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('bucket', 'mni-assets');
+
+    formData.append('provider', 'CLOUDINARY');
+    formData.append('folder', 'banner-kajian');
+
     try {
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
+
       const result = await res.json();
-      if (result.url) {
+
+      if (res.ok && result.url) {
         setKajianList((prev) =>
           prev.map((p) => (p.id === id ? { ...p, gambar_url: result.url } : p)),
         );
+      } else {
+        alert(`Gagal upload gambar: ${result.error}`);
+        console.error('Error dari API:', result.error);
       }
     } catch (error) {
-      alert('Gagal upload gambar.');
+      console.error('Koneksi terputus:', error);
+      alert('Koneksi jaringan bermasalah saat upload gambar.');
     } finally {
       setIsUploading(false);
     }
@@ -112,7 +122,6 @@ export default function EditorKajian() {
     alert('Jadwal Kajian berhasil dipublikasikan!');
   };
 
-  // FUNGSI BARU: MULTI-SELECT
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
@@ -135,9 +144,6 @@ export default function EditorKajian() {
 
   return (
     <div className='relative min-h-screen'>
-      {/* ==========================================
-          INJECT ANIMASI JIGGLE ELEGANT
-          ========================================== */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -159,9 +165,6 @@ export default function EditorKajian() {
         }}
       />
 
-      {/* ==========================================
-          FLOATING ACTION BAR (PILL) ALA MACOS
-          ========================================== */}
       <AnimatePresence>
         {isSelectionMode && (
           <motion.div
@@ -202,7 +205,6 @@ export default function EditorKajian() {
         )}
       </AnimatePresence>
 
-      {/* HEADER MENGAMBANG ADMIN */}
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -233,12 +235,10 @@ export default function EditorKajian() {
         </button>
       </motion.div>
 
-      {/* KANVAS EDITOR */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className='bg-gray-50 -mx-4 md:-mx-8 px-4 md:px-8 py-8 min-h-screen'>
-        {/* PEMBUNGKUS COMPONENT UNTUK MENCEGAH HIGHLIGHT TEKS SAAT MULTI-SELECT */}
         <div className={isSelectionMode ? 'select-none' : ''}>
           <JadwalKajian
             data={form}
@@ -249,7 +249,6 @@ export default function EditorKajian() {
             onItemDelete={handleItemDelete}
             onItemAdd={handleItemAdd}
             onImageUpload={handleImageUpload}
-            // PROPS MULTI-SELECT
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
             isSelectionMode={isSelectionMode}

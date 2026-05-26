@@ -15,7 +15,6 @@ export async function POST(request: Request) {
       email_jamaah,
       nama_jamaah,
       kode_trx,
-      dana_terbayar,
       bukti_refund_url,
     } = data;
 

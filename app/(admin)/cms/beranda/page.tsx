@@ -11,7 +11,6 @@ export default function EditorBeranda() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // State Data Dinamis
   const [form, setForm] = useState<any>({
     info_dkm:
       "• Assalamu'alaikum. Shalat Idul Adha 1447 H akan diselenggarakan di Lapangan Utama. • Dibutuhkan segera tambahan relawan panitia Kurban. • Saldo wakaf pembebasan lahan parkir masih kurang Rp 15.000.000,-.",
@@ -120,7 +119,7 @@ export default function EditorBeranda() {
           badge: getVal('beranda_hero_badge', form.badge),
           judul: getVal('beranda_hero_judul', form.judul),
           deskripsi: getVal('beranda_hero_deskripsi', form.deskripsi),
-          gambar_url: getVal('beranda_hero_gambar', ''),
+          gambar_url: getVal('beranda_hero_gambar', form.gambar_url),
           jadwal_judul: getVal('beranda_jadwal_judul', form.jadwal_judul),
           kas_ops_judul: getVal('beranda_kas_ops_judul', form.kas_ops_judul),
           kas_ops_desc: getVal('beranda_kas_ops_desc', form.kas_ops_desc),
@@ -233,28 +232,43 @@ export default function EditorBeranda() {
     }));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    id: number,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setIsUploading(true);
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('bucket', 'mni-assets');
+
+    formData.append('provider', 'CLOUDINARY');
+
+    formData.append('folder', 'beranda-assets');
+
     try {
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
+
       const result = await res.json();
-      if (result.url)
+
+      if (res.ok && result.url) {
         setForm((prev: any) => ({ ...prev, gambar_url: result.url }));
+      } else {
+        alert(`Gagal upload gambar: ${result.error}`);
+        console.error('Error dari API:', result.error);
+      }
     } catch (error) {
-      alert('Gagal upload gambar.');
+      console.error('Koneksi terputus:', error);
+      alert('Koneksi jaringan bermasalah saat upload gambar.');
     } finally {
       setIsUploading(false);
     }
   };
-
   const handlePublish = async () => {
     setIsSaving(true);
     const updates = [
@@ -284,7 +298,6 @@ export default function EditorBeranda() {
       { kunci: 'beranda_program_judul', nilai: form.program_judul },
       { kunci: 'beranda_program_desc', nilai: form.program_desc },
 
-      // INFO TEKS KURBAN & ZISWAF
       { kunci: 'beranda_kurban_info_0', nilai: form.kurban_info_0 },
       { kunci: 'beranda_kurban_info_1', nilai: form.kurban_info_1 },
       { kunci: 'beranda_kurban_info_2', nilai: form.kurban_info_2 },

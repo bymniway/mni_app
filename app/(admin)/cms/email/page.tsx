@@ -17,7 +17,6 @@ export default function EditorEmailMaster() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // State untuk memilih layanan mana yang sedang diedit
   const [activeService, setActiveService] = useState<'ZISWAF' | 'KURBAN'>(
     'ZISWAF',
   );
@@ -43,7 +42,6 @@ export default function EditorEmailMaster() {
     setForm((prev: any) => ({ ...prev, [key]: value }));
   };
 
-  // Upload dinamis untuk ZISWAF dan KURBAN
   const handleImageUpload = async (
     type: 'LOGO' | 'STEMPEL' | 'LOGO_KURBAN' | 'STEMPEL_KURBAN',
     e: any,
@@ -53,7 +51,9 @@ export default function EditorEmailMaster() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('bucket', 'mni-assets');
+    formData.append('provider', 'CLOUDINARY');
+
+    formData.append('folder', 'email-assets');
 
     try {
       const res = await fetch('/api/upload', {
@@ -62,7 +62,6 @@ export default function EditorEmailMaster() {
       });
       const result = await res.json();
       if (result.url) {
-        // Tentukan key database berdasarkan type upload
         let key = '';
         if (type === 'LOGO') key = 'email_ziswaf_logo_url';
         else if (type === 'STEMPEL') key = 'email_ziswaf_stempel_url';
@@ -106,7 +105,6 @@ export default function EditorEmailMaster() {
         initial={{ y: -20 }}
         animate={{ y: 0 }}
         className='max-w-5xl mx-auto pt-8'>
-        {/* HEADER ENGINE */}
         <div className=' sticky top-4 z-50 flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 gap-4'>
           <div className='flex items-center gap-4'>
             <div
@@ -118,7 +116,7 @@ export default function EditorEmailMaster() {
                 Visual Editor Email
               </h1>
               <p className='text-xs font-bold text-slate-400 uppercase tracking-widest'>
-                Branding & Communication Editor
+                Edit template email untuk ZISWAF dan KURBAN
               </p>
             </div>
           </div>
@@ -135,7 +133,6 @@ export default function EditorEmailMaster() {
           </button>
         </div>
 
-        {/* SWITCHER ZISWAF / KURBAN */}
         <div className='flex bg-white p-2 rounded-2xl shadow-sm border border-gray-100 mb-8 max-w-sm mx-auto'>
           <button
             onClick={() => setActiveService('ZISWAF')}
@@ -149,7 +146,6 @@ export default function EditorEmailMaster() {
           </button>
         </div>
 
-        {/* RENDER EDITOR BERDASARKAN SERVICE YANG AKTIF */}
         <AnimatePresence mode='wait'>
           <motion.div
             key={activeService}

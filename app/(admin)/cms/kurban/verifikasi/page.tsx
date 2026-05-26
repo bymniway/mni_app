@@ -256,7 +256,10 @@ export default function VerifikasiKurbanPage() {
       const uploadPromises = fileSembelih.map(async (file) => {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('bucket', 'mni-assets');
+        // Menembak langsung ke Alibaba Cloud OSS Jakarta
+        formData.append('provider', 'ALIBABA');
+        // Mengelompokkan gambar ke dalam folder khusus agar rapi di dasbor Alibaba
+        formData.append('folder', 'kurban-sembelih-assets');
         const res = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
@@ -334,7 +337,9 @@ export default function VerifikasiKurbanPage() {
       if (fileRefund) {
         const formData = new FormData();
         formData.append('file', fileRefund);
-        formData.append('bucket', 'mni-assets');
+        formData.append('provider', 'FIREBASE');
+        // Mengelompokkan berkas ke folder bukti transfer tahun ini
+        formData.append('folder', 'refund-kurban-assets');
         const resUpload = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
