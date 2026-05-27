@@ -1312,7 +1312,7 @@ export default function RiwayatPesananKurban() {
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLS.utils.book_append_sheet(workbook, worksheet, 'Daftar_Kurban');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Daftar_Kurban');
     XLSX.writeFile(
       workbook,
       `Data_Kurban_MNI_Export_${new Date().getTime()}.xlsx`,
