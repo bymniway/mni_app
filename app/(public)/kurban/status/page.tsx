@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   Loader2,
@@ -21,11 +22,9 @@ import {
   ChevronUp,
   History,
   Check,
+  X,
 } from 'lucide-react';
 
-// ==========================================
-// HELPER: FORMAT TANGGAL
-// ==========================================
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
   try {
@@ -43,118 +42,194 @@ const formatDate = (dateString: string) => {
 
 const cleanUrl = (url: string) => {
   if (!url) return '';
-  // Membabat habis semua jenis tanda kutip (ganda/tunggal) dan spasi
   return url.replace(/["']/g, '').trim();
 };
+
 // ==========================================
-// KOMPONEN: CAROUSEL GAMBAR (SWIPE NATIVE STYLE)
+// 1. KOMPONEN: IMAGE CAROUSEL (IG STYLE)
 // ==========================================
 const ImageCarousel = ({ rawUrlData }: { rawUrlData: string }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [images, setImages] = useState<string[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const fullscreenScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!rawUrlData) return;
 
-    // Pembersih tanda kutip liar
-    const cleanUrl = (url: string) => url?.replace(/["']/g, '').trim();
+    const cleanUrlStr = (url: string) => url?.replace(/["']/g, '').trim();
 
     try {
       const parsed = JSON.parse(rawUrlData);
       if (Array.isArray(parsed)) {
-        setImages(parsed.map(cleanUrl));
+        setImages(parsed.map(cleanUrlStr));
       } else if (typeof parsed === 'string') {
-        setImages([cleanUrl(parsed)]);
+        setImages([cleanUrlStr(parsed)]);
       } else {
-        setImages([cleanUrl(rawUrlData)]);
+        setImages([cleanUrlStr(rawUrlData)]);
       }
     } catch {
-      setImages([cleanUrl(rawUrlData)]);
+      setImages([cleanUrlStr(rawUrlData)]);
     }
   }, [rawUrlData]);
 
-  // Fungsi untuk mendeteksi gambar mana yang sedang aktif saat digeser (swipe)
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
     const scrollPosition = container.scrollLeft;
     const width = container.clientWidth;
-    // Hitung index berdasarkan posisi scroll dibagi lebar container
     const newIndex = Math.round(scrollPosition / width);
     if (newIndex !== currentIndex) {
       setCurrentIndex(newIndex);
     }
   };
 
-  // Fungsi untuk menggeser gambar jika jamaah menekan titik indikator
-  const scrollTo = (index: number) => {
-    if (scrollContainerRef.current) {
-      const width = scrollContainerRef.current.clientWidth;
-      scrollContainerRef.current.scrollTo({
+  const scrollTo = (index: number, isFs: boolean = false) => {
+    const ref = isFs ? fullscreenScrollRef : scrollContainerRef;
+    if (ref.current) {
+      const width = ref.current.clientWidth;
+      ref.current.scrollTo({
         left: index * width,
         behavior: 'smooth',
       });
     }
   };
 
+  // Sinkronisasi posisi scroll antara Carousel Inline dan Fullscreen
+  useEffect(() => {
+    if (isFullscreen && fullscreenScrollRef.current) {
+      fullscreenScrollRef.current.scrollLeft =
+        currentIndex * fullscreenScrollRef.current.clientWidth;
+    } else if (!isFullscreen && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft =
+        currentIndex * scrollContainerRef.current.clientWidth;
+    }
+  }, [isFullscreen]);
+
   if (images.length === 0) return null;
 
-  if (images.length === 1) {
-    return (
-      <img
-        src={images[0]}
-        alt='Bukti Sembelih'
-        className='w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm border border-emerald-200/50'
-      />
-    );
-  }
-
   return (
-    <div className='relative w-full h-48 sm:h-64 rounded-xl overflow-hidden shadow-sm border border-emerald-200/50 group'>
-      {/* Container Gambar Bergeser dengan efek "CSS Scroll Snap".
-        hide-scrollbar akan menyembunyikan scrollbar agar bersih.
-      */}
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className='flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth'
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {/* Hack CSS agar scrollbar webkit (Chrome/Safari) tersembunyi */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `div::-webkit-scrollbar { display: none; }`,
-          }}
-        />
+    <>
+      {/* INLINE CAROUSEL */}
+      <div className='relative w-full h-48 sm:h-64 rounded-xl overflow-hidden shadow-sm border border-emerald-200/50 group cursor-pointer'>
+        {images.length > 1 && (
+          <div className='absolute top-3 right-3 z-10 bg-black/60 text-white text-[10px] font-bold px-2.5 py-1 rounded-md backdrop-blur-sm shadow-sm pointer-events-none'>
+            {currentIndex + 1} / {images.length}
+          </div>
+        )}
 
-        {images.map((img, idx) => (
-          <img
-            key={idx}
-            src={img}
-            alt={`Bukti ${idx + 1}`}
-            className='min-w-full h-full object-cover snap-center shrink-0'
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className='flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth'
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `div::-webkit-scrollbar { display: none; }`,
+            }}
           />
-        ))}
+
+          {images.map((img, idx) => (
+            <div
+              key={idx}
+              className='min-w-full h-full snap-center shrink-0 relative'
+              onClick={() => setIsFullscreen(true)}>
+              <img
+                src={img}
+                alt={`Bukti ${idx + 1}`}
+                className='w-full h-full object-cover'
+              />
+              <div className='absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none'>
+                <Search className='w-8 h-8 text-white drop-shadow-md' />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {images.length > 1 && (
+          <div className='absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10 pointer-events-none'>
+            {images.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${
+                  currentIndex === idx ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Titik Indikator Bawah (Instagram Style) */}
-      <div className='absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10'>
-        {images.map((_, idx) => (
-          <div
-            key={idx}
-            onClick={() => scrollTo(idx)}
-            className={`h-1.5 rounded-full cursor-pointer transition-all duration-300 shadow-sm ${
-              currentIndex === idx
-                ? 'w-4 bg-white'
-                : 'w-1.5 bg-white/50 hover:bg-white/80'
-            }`}
-          />
-        ))}
-      </div>
-    </div>
+      {/* FULLSCREEN LIGHTBOX (IG STYLE) */}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className='fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-lg'>
+            <div className='absolute top-4 sm:top-6 right-4 sm:right-6 z-50 flex items-center gap-3 sm:gap-4'>
+              {images.length > 1 && (
+                <div className='bg-white/10 text-white text-xs font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-md'>
+                  {currentIndex + 1} / {images.length}
+                </div>
+              )}
+              <button
+                onClick={() => setIsFullscreen(false)}
+                className='text-white bg-white/10 hover:bg-white/30 p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all shadow-lg'>
+                <X className='w-5 h-5 sm:w-6 sm:h-6' />
+              </button>
+            </div>
+
+            <div
+              ref={fullscreenScrollRef}
+              onScroll={handleScroll}
+              className='flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth items-center'
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style
+                dangerouslySetInnerHTML={{
+                  __html: `div::-webkit-scrollbar { display: none; }`,
+                }}
+              />
+              {images.map((img, idx) => (
+                <div
+                  key={idx}
+                  className='min-w-full h-full flex items-center justify-center snap-center p-0 sm:p-12 relative'>
+                  <img
+                    src={img}
+                    alt={`Full ${idx + 1}`}
+                    className='max-w-full max-h-[100vh] sm:max-h-full object-contain'
+                  />
+                </div>
+              ))}
+            </div>
+
+            {images.length > 1 && (
+              <div className='absolute bottom-6 sm:bottom-8 left-0 right-0 flex justify-center gap-2 z-50'>
+                {images.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => scrollTo(idx, true)}
+                    className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 shadow-md ${
+                      currentIndex === idx
+                        ? 'w-6 sm:w-8 bg-white'
+                        : 'w-1.5 sm:w-2 bg-white/40 hover:bg-white/80'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
+
 // ==========================================
-// 1. KOMPONEN: SISA SLOT URUNAN
+// 2. KOMPONEN: URUNAN & COUNTDOWN
 // ==========================================
 const UrunanProgress = ({
   hewanId,
@@ -216,14 +291,11 @@ const UrunanProgress = ({
     </div>
   );
 };
-// ==========================================
-// 2. KOMPONEN: COUNTDOWN OTOMATIS (10 DZULHIJJAH)
-// ==========================================
+
 const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
   const [timeLeft, setTimeLeft] = useState('');
   const [targetDateMs, setTargetDateMs] = useState<number | null>(null);
 
-  // 1. Ambil pengaturan penyesuaian Hijriah dan hitung kapan 10 Dzulhijjah
   useEffect(() => {
     const hitungIdulAdha = async () => {
       let hijriAdj = 0;
@@ -246,9 +318,8 @@ const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
         },
       );
 
-      // Cari 10 Dzulhijjah terdekat (mulai dari hari ini)
       let checkDate = new Date();
-      checkDate.setHours(10, 0, 0, 0); // Atur penyembelihan jam 10:00 Pagi
+      checkDate.setHours(10, 0, 0, 0);
 
       for (let i = 0; i < 365; i++) {
         const adjustedDate = new Date(
@@ -262,7 +333,6 @@ const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
           parts.find((p) => p.type === 'day')?.value || '0',
         );
 
-        // Jika Bulan 12 (Dzulhijjah) dan Hari 10 (Idul Adha)
         if (hMonth === 12 && hDay === 10) {
           setTargetDateMs(checkDate.getTime());
           break;
@@ -270,11 +340,9 @@ const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
         checkDate.setDate(checkDate.getDate() + 1);
       }
     };
-
     hitungIdulAdha();
   }, []);
 
-  // 2. Jalankan Hitung Mundur
   useEffect(() => {
     if (
       statusPesanan === 'Selesai' ||
@@ -298,9 +366,7 @@ const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
         (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
       );
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000); // <--- Kalkulasi detik ditambahkan
-
-      // Format detik agar selalu 2 digit (contoh: 09d, bukan 9d)
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
       const formattedSeconds = seconds.toString().padStart(2, '0');
       setTimeLeft(
         `${days} hari ${hours} jam ${minutes} menit ${formattedSeconds} detik`,
@@ -323,6 +389,7 @@ const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
     </div>
   );
 };
+
 // ==========================================
 // 3. KOMPONEN: SMART VERTICAL TRACKER
 // ==========================================
@@ -461,7 +528,7 @@ const SmartVerticalTracker = ({ pesanan }: { pesanan: any }) => {
                     className={`mt-3 p-3 sm:p-4 rounded-xl border text-xs sm:text-[13px] font-medium leading-relaxed ${isErrorState ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-slate-50 border-slate-100 text-slate-600'}`}>
                     {isErrorState && (
                       <AlertCircle className='w-4 h-4 inline-block mr-1.5 -mt-0.5 text-rose-500' />
-                    )}{' '}
+                    )}
                     {step.catatan}
                   </div>
                 )}
@@ -474,349 +541,6 @@ const SmartVerticalTracker = ({ pesanan }: { pesanan: any }) => {
   );
 };
 
-// // ==========================================
-// // KOMPONEN UTAMA
-// // ==========================================
-// export default function LacakStatusPage() {
-//   const searchParams = useSearchParams();
-//   const [keyword, setKeyword] = useState('');
-
-//   const [hasil, setHasil] = useState<any[]>([]);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [sudahCari, setSudahCari] = useState(false);
-
-//   // ==========================================
-//   // LOGIKA PENCARIAN PINTAR (SMART SEARCH)
-//   // ==========================================
-//   const eksekusiCariStatus = useCallback(async (targetKeyword: string) => {
-//     if (!targetKeyword) return;
-//     const cleanKeyword = targetKeyword.trim();
-
-//     // 1. Deteksi menggunakan Regex: Apakah isinya MURNI angka semua?
-//     const isMurniAngka = /^\d+$/.test(cleanKeyword);
-
-//     // Jika murni angka (pencarian WA), blokir kalau kurang dari 4 digit
-//     if (isMurniAngka && cleanKeyword.length < 4) {
-//       alert('Masukkan minimal 4 digit nomor WhatsApp untuk mencari.');
-//       return;
-//     }
-
-//     setIsLoading(true);
-//     setSudahCari(true);
-
-//     try {
-//       // 2. Siapkan Query Dasar
-//       let supabaseQuery = supabase
-//         .from('pesanan')
-//         .select('*, hewan(jenis, tipe, harga)');
-
-//       // 3. Cabangkan Logika Query
-//       if (isMurniAngka) {
-//         // Logika WA: Fleksibel cari kecocokan nomor (%0812%)
-//         supabaseQuery = supabaseQuery.ilike('whatsapp', `%${cleanKeyword}%`);
-//       } else {
-//         // Logika TRX: Pasti ada hurufnya, jadi WAJIB sama persis (QRB-MNI-...)
-//         supabaseQuery = supabaseQuery.eq(
-//           'kode_trx',
-//           cleanKeyword.toUpperCase(),
-//         );
-//       }
-
-//       // 4. Eksekusi Query ke Database
-//       const { data, error } = await supabaseQuery.order('created_at', {
-//         ascending: false,
-//       });
-
-//       if (error) throw error;
-//       setHasil(data || []);
-//     } catch (error) {
-//       console.error(error);
-//       alert('Gagal mencari data. Silakan coba lagi.');
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   }, []);
-
-//   // AUTO-SEARCH DARI EMAIL URL (?trx=...)
-//   useEffect(() => {
-//     const trx = searchParams.get('trx');
-//     if (trx) {
-//       setKeyword(trx);
-//       eksekusiCariStatus(trx);
-//     }
-//   }, [searchParams, eksekusiCariStatus]);
-
-//   // MANUAL SEARCH DARI FORM INPUT
-//   const cariStatus = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     eksekusiCariStatus(keyword);
-//   };
-
-//   const [showRiwayat, setShowRiwayat] = useState(false);
-
-//   return (
-//     <div className='min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 font-sans selection:bg-teal-100 selection:text-teal-900'>
-//       <div className='max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out'>
-//         {/* Header & Search Bar (Sama seperti sebelumnya) */}
-//         <div className='text-center space-y-1.5 sm:space-y-2'>
-//           <h1 className='text-2xl sm:text-[28px] leading-tight font-extrabold text-teal-600 tracking-tight'>
-//             Lacak Status Kurban
-//           </h1>
-//           <p className='text-xs sm:text-[15px] text-slate-500 font-medium'>
-//             Pantau progress pendaftaran dan penyaluran kurban Anda.
-//           </p>
-//         </div>
-
-//         <form
-//           onSubmit={cariStatus}
-//           className='relative flex items-center shadow-sm rounded-xl sm:rounded-2xl bg-white transition-all focus-within:shadow-md focus-within:ring-1 focus-within:ring-teal-500/20 border border-slate-200/80'>
-//           <Search className='absolute left-4 sm:left-5 w-4 h-4 sm:w-5 sm:h-5 text-slate-400' />
-//           <input
-//             type='text'
-//             value={keyword}
-//             onChange={(e) => setKeyword(e.target.value)}
-//             placeholder='Kode QRB- atau No WhatsApp...'
-//             className='w-full bg-transparent border-none py-3.5 sm:py-4 pl-10 sm:pl-14 pr-24 sm:pr-32 text-sm sm:text-[15px] font-semibold text-teal-700 placeholder:text-slate-400 focus:ring-0 outline-none'
-//             required
-//           />
-//           <div className='absolute right-1.5 sm:right-2'>
-//             <button
-//               type='submit'
-//               disabled={isLoading}
-//               className='bg-teal-600 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm hover:bg-teal-700 transition-all active:scale-95 flex items-center justify-center min-w-[60px] sm:min-w-[80px]'>
-//               {isLoading ? (
-//                 <Loader2 className='w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin' />
-//               ) : (
-//                 'Lacak'
-//               )}
-//             </button>
-//           </div>
-//         </form>
-
-//         <div className='space-y-6'>
-//           {isLoading && (
-//             <div className='bg-white rounded-2xl sm:rounded-[28px] p-5 sm:p-8 shadow-sm border border-slate-100 animate-pulse'>
-//               <div className='h-40 w-full bg-slate-100 rounded-xl sm:rounded-2xl'></div>
-//             </div>
-//           )}
-//           {!isLoading && sudahCari && hasil.length === 0 && (
-//             <div className='text-center p-8 sm:p-12 bg-white rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 animate-in zoom-in-95'>
-//               <div className='w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-inner'>
-//                 <AlertCircle className='w-8 h-8 sm:w-10 sm:h-10 text-slate-400' />
-//               </div>
-//               <h3 className='text-lg sm:text-xl font-bold text-slate-800 tracking-tight'>
-//                 Pesanan Tidak Ditemukan
-//               </h3>
-//               <p className='text-xs sm:text-sm text-slate-500 mt-2 max-w-[280px] mx-auto leading-relaxed'>
-//                 Pastikan Kode Transaksi (QRB-) atau Nomor WhatsApp yang Anda
-//                 masukkan sudah benar.
-//               </p>
-//             </div>
-//           )}
-
-//           {!isLoading &&
-//             hasil.map((pesanan) => (
-//               <div
-//                 key={pesanan.id}
-//                 className='bg-white rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out overflow-hidden'>
-//                 <div className='bg-white px-5 sm:px-8 py-5 flex justify-between items-center'>
-//                   <div>
-//                     <p className='text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-widest'>
-//                       Kode Transaksi
-//                     </p>
-//                     <p className='text-base sm:text-lg font-bold text-teal-700 font-mono tracking-wide'>
-//                       {pesanan.kode_trx}
-//                     </p>
-//                   </div>
-//                   {/* <span className='px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase border bg-white text-slate-300 border-slate-700'>
-//                     {pesanan.status_pesanan}
-//                   </span> */}
-//                   <span
-//                     className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-md sm:rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border ${pesanan.status_pesanan === 'Booking' ? 'bg-slate-50 text-slate-600 border-slate-200' : pesanan.status_pesanan === 'Menunggu' ? 'bg-amber-50 text-amber-700 border-amber-200' : pesanan.status_pesanan === 'Lunas' || pesanan.status_pesanan === 'Selesai' || pesanan.status_pesanan === 'Terkirim' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
-//                     {pesanan.status_pesanan}
-//                   </span>
-//                 </div>
-
-//                 <div className='p-5 sm:p-8 space-y-6 sm:space-y-8'>
-//                   {/* Info Mudhohi */}
-//                   <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden flex justify-between items-start'>
-//                     <div className='relative z-10 w-full'>
-//                       <p className='text-[10px] sm:text-[11px] font-bold uppercase text-slate-400 tracking-widest'>
-//                         Shohibul Kurban
-//                       </p>
-//                       <p className='text-lg sm:text-xl font-bold text-teal-700 tracking-tight leading-none mt-2 mb-2'>
-//                         {pesanan.nama_mudhohi}
-//                       </p>
-//                       <p className='text-xs sm:text-sm text-slate-400 font-medium'>
-//                         {pesanan.hewan.jenis} - {pesanan.hewan.tipe}
-//                       </p>
-//                       <UrunanProgress
-//                         hewanId={pesanan.hewan_id}
-//                         hewanTipe={pesanan.hewan.tipe}
-//                         hewanJenis={pesanan.hewan.jenis}
-//                       />
-//                     </div>
-//                   </div>
-//                   <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden group'>
-//                     <div className='relative z-10'>
-//                       {pesanan.kekurangan_dana > 0 &&
-//                       pesanan.status_pesanan !== 'Lunas' ? (
-//                         <>
-//                           <div className='space-y-2.5 sm:space-y-3 mb-4 sm:mb-5'>
-//                             <div className='flex justify-between items-center text-xs sm:text-[14px]'>
-//                               <span className='text-slate-500 font-medium'>
-//                                 Harga Kurban
-//                               </span>
-//                               <span className='font-bold text-slate-800'>
-//                                 Rp {pesanan.total_bayar.toLocaleString('id-ID')}
-//                               </span>
-//                             </div>
-//                             <div className='flex justify-between items-center text-xs sm:text-[14px]'>
-//                               <span className='text-slate-500 font-medium'>
-//                                 Dana Terdahulu
-//                               </span>
-//                               <span className='font-bold text-teal-600'>
-//                                 - Rp{' '}
-//                                 {(
-//                                   pesanan.total_bayar - pesanan.kekurangan_dana
-//                                 ).toLocaleString('id-ID')}
-//                               </span>
-//                             </div>
-//                           </div>
-//                           <div className='border-t border-dashed border-slate-300 pt-3 sm:pt-4 flex items-center justify-between'>
-//                             <p className='text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest'>
-//                               Sisa Tagihan
-//                             </p>
-//                             <div className='text-right'>
-//                               <p className='text-xl sm:text-[24px] leading-none font-bold text-slate-900 tracking-tight'>
-//                                 Rp{' '}
-//                                 {pesanan.kekurangan_dana.toLocaleString(
-//                                   'id-ID',
-//                                 )}
-//                               </p>
-//                             </div>
-//                           </div>
-//                         </>
-//                       ) : (
-//                         <div className='flex items-center justify-between'>
-//                           <p className='text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest'>
-//                             Total Nilai Kurban
-//                           </p>
-//                           <div className='flex flex-col items-end'>
-//                             <p className='text-[17px] sm:text-[28px] leading-none font-bold text-teal-700 tracking-tight'>
-//                               Rp {pesanan.total_bayar.toLocaleString('id-ID')}
-//                             </p>
-//                             {pesanan.status_pesanan === 'Lunas' && (
-//                               <div className='inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 mt-1.5 sm:mt-2 bg-emerald-100/50 rounded-md border border-emerald-200/50 backdrop-blur-sm'>
-//                                 <CheckCircle2 className='w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600' />
-//                                 <span className='text-[9px] sm:text-[10px] font-bold text-teal-600 uppercase tracking-wider'>
-//                                   Terverifikasi
-//                                 </span>
-//                               </div>
-//                             )}
-//                           </div>
-//                         </div>
-//                       )}
-//                     </div>
-//                   </div>
-
-//                   <SlaughterCountdown statusPesanan={pesanan.status_pesanan} />
-//                   <SmartVerticalTracker pesanan={pesanan} />
-
-//                   {pesanan.logs && pesanan.logs.length > 0 && (
-//                     <div className='mt-6 border-t border-slate-100 pt-4'>
-//                       <button
-//                         onClick={() => setShowRiwayat(!showRiwayat)}
-//                         className='w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-teal-600 transition-colors'>
-//                         <span className='flex items-center gap-2'>
-//                           <History className='w-4 h-4' /> Lihat Riwayat Lengkap
-//                         </span>
-//                         {showRiwayat ? (
-//                           <ChevronUp className='w-4 h-4' />
-//                         ) : (
-//                           <ChevronDown className='w-4 h-4' />
-//                         )}
-//                       </button>
-
-//                       {showRiwayat && (
-//                         <div className='mt-4 pl-2 space-y-4 animate-in slide-in-from-top-2 duration-300'>
-//                           {pesanan.logs.map((log: any, idx: number) => (
-//                             <div
-//                               key={idx}
-//                               className="relative pl-5 before:content-[''] before:absolute before:left-0 before:top-1.5 before:w-2 before:h-2 before:bg-slate-300 before:rounded-full after:content-[''] after:absolute after:left-[3px] after:top-4 after:bottom-[-20px] after:w-0.5 after:bg-slate-100 last:after:hidden">
-//                               <p className='text-[10px] font-bold text-slate-400'>
-//                                 {formatDate(log.timestamp)} • {log.oleh}
-//                               </p>
-//                               <p className='text-[12px] font-bold text-slate-700 leading-snug'>
-//                                 {log.status}
-//                               </p>
-//                               <p className='text-[11px] text-slate-500'>
-//                                 {log.catatan}
-//                               </p>
-//                             </div>
-//                           ))}
-//                         </div>
-//                       )}
-//                     </div>
-//                   )}
-
-//                   {/* 4. GALERI FOTO SEMBELIH (DENGAN CAROUSEL) */}
-//                   {(pesanan.status_pesanan === 'Selesai' ||
-//                     pesanan.status_pesanan === 'Terkirim') &&
-//                     pesanan.bukti_sembelih_url && (
-//                       <div className='bg-teal-50/50 border border-emerald-100 rounded-2xl p-4 sm:p-5 mt-4 animate-in fade-in'>
-//                         <p className='text-[10px] sm:text-[11px] font-bold uppercase text-teal-600 tracking-widest mb-3 flex items-center gap-1.5'>
-//                           <CheckCircle2 className='w-4 h-4' /> Dokumentasi
-//                           Penyembelihan
-//                         </p>
-//                         <ImageCarousel
-//                           rawUrlData={pesanan.bukti_sembelih_url}
-//                         />
-//                       </div>
-//                     )}
-
-//                   {/* 5. FOTO BUKTI KURIR PENGIRIMAN DAGING */}
-//                   {pesanan.status_pesanan === 'Terkirim' &&
-//                     pesanan.bukti_kirim_url && (
-//                       <div className='bg-teal-50/50 border border-emerald-100 rounded-2xl p-4 sm:p-5 mt-4 animate-in fade-in'>
-//                         <p className='text-[10px] sm:text-[11px] font-bold uppercase text-teal-600 tracking-widest mb-3 flex items-center gap-1.5'>
-//                           <PackageOpen className='w-4 h-4' /> Dokumentasi
-//                           Penerimaan Daging
-//                         </p>
-//                         <img
-//                           src={cleanUrl(pesanan.bukti_kirim_url)}
-//                           alt='Bukti Kirim'
-//                           className='w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm border border-blue-200/50'
-//                         />
-//                       </div>
-//                     )}
-
-//                   {(pesanan.status_pesanan === 'Booking' ||
-//                     pesanan.status_pesanan === 'Ditolak' ||
-//                     (pesanan.status_pesanan === 'Menunggu' &&
-//                       pesanan.kekurangan_dana > 0)) && (
-//                     <div className='pt-2 border-t border-slate-100'>
-//                       <a
-//                         href={`/kurban/konfirmasi?trx=${pesanan.kode_trx}`}
-//                         className='w-full bg-teal-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-[15px] flex justify-center items-center gap-2'>
-//                         Selesaikan Pembayaran <ArrowRight className='w-4 h-4' />
-//                       </a>
-//                     </div>
-//                   )}
-//                 </div>
-//               </div>
-//             ))}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-//
-//
-//
-// ==========================================
-// KOMPONEN ISI (DIPISAH AGAR BISA DIBUNGKUS SUSPENSE)
-// ==========================================
 function StatusContent() {
   const searchParams = useSearchParams();
   const [keyword, setKeyword] = useState('');
@@ -825,13 +549,8 @@ function StatusContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [sudahCari, setSudahCari] = useState(false);
 
-  // 1. TAMBAHKAN GEMBOK REFERENSI
-  // Ini mencegah auto-search berulang-ulang yang menimpa pencarian manual jamaah
   const hasAutoSearched = useRef(false);
 
-  // ==========================================
-  // LOGIKA PENCARIAN PINTAR (SMART SEARCH)
-  // ==========================================
   const eksekusiCariStatus = useCallback(async (targetKeyword: string) => {
     if (!targetKeyword) return;
     const cleanKeyword = targetKeyword.trim();
@@ -847,8 +566,6 @@ function StatusContent() {
     setSudahCari(true);
 
     try {
-      // Catatan: Pastikan tabel 'hewan' Mas benar-benar punya kolom 'harga'.
-      // Jika tidak ada, hapus kata 'harga' di bawah ini agar tidak error Supabase.
       let supabaseQuery = supabase
         .from('pesanan')
         .select('*, hewan(jenis, tipe, harga)');
@@ -876,23 +593,16 @@ function StatusContent() {
     }
   }, []);
 
-  // ==========================================
-  // 2. AUTO-SEARCH DARI EMAIL URL (?trx=...) YANG SUDAH DIKUNCI
-  // ==========================================
   useEffect(() => {
     const trx = searchParams.get('trx');
 
-    // Syarat jalan: Ada trx di URL DAN belum pernah auto-search sebelumnya
     if (trx && !hasAutoSearched.current) {
       setKeyword(trx);
       eksekusiCariStatus(trx);
-
-      // Kunci gemboknya! Agar ketikan manual user tidak dibajak efek ini nantinya
       hasAutoSearched.current = true;
     }
   }, [searchParams, eksekusiCariStatus]);
 
-  // MANUAL SEARCH DARI FORM INPUT
   const cariStatus = (e: React.FormEvent) => {
     e.preventDefault();
     eksekusiCariStatus(keyword);
@@ -945,6 +655,7 @@ function StatusContent() {
               <div className='h-40 w-full bg-slate-100 rounded-xl sm:rounded-2xl'></div>
             </div>
           )}
+
           {!isLoading && sudahCari && hasil.length === 0 && (
             <div className='text-center p-8 sm:p-12 bg-white rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 animate-in zoom-in-95'>
               <div className='w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-inner'>
@@ -981,7 +692,6 @@ function StatusContent() {
                 </div>
 
                 <div className='p-5 sm:p-8 space-y-6 sm:space-y-8'>
-                  {/* Info Mudhohi */}
                   <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden flex justify-between items-start'>
                     <div className='relative z-10 w-full'>
                       <p className='text-[10px] sm:text-[11px] font-bold uppercase text-slate-400 tracking-widest'>
@@ -1000,6 +710,7 @@ function StatusContent() {
                       />
                     </div>
                   </div>
+
                   <div className='relative bg-[#F8FAFC] rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 overflow-hidden group'>
                     <div className='relative z-10'>
                       {pesanan.kekurangan_dana > 0 &&
@@ -1080,7 +791,6 @@ function StatusContent() {
                           <ChevronDown className='w-4 h-4' />
                         )}
                       </button>
-
                       {showRiwayat && (
                         <div className='mt-4 pl-2 space-y-4 animate-in slide-in-from-top-2 duration-300'>
                           {pesanan.logs.map((log: any, idx: number) => (
@@ -1103,7 +813,7 @@ function StatusContent() {
                     </div>
                   )}
 
-                  {/* 4. GALERI FOTO SEMBELIH (DENGAN CAROUSEL) */}
+                  {/* DIGANTI MENJADI COMPONENT BARU: IMAGE CAROUSEL FULLSCREEN */}
                   {(pesanan.status_pesanan === 'Selesai' ||
                     pesanan.status_pesanan === 'Terkirim') &&
                     pesanan.bukti_sembelih_url && (
@@ -1118,7 +828,6 @@ function StatusContent() {
                       </div>
                     )}
 
-                  {/* 5. FOTO BUKTI KURIR PENGIRIMAN DAGING */}
                   {pesanan.status_pesanan === 'Terkirim' &&
                     pesanan.bukti_kirim_url && (
                       <div className='bg-teal-50/50 border border-emerald-100 rounded-2xl p-4 sm:p-5 mt-4 animate-in fade-in'>
@@ -1126,11 +835,7 @@ function StatusContent() {
                           <PackageOpen className='w-4 h-4' /> Dokumentasi
                           Penerimaan Daging
                         </p>
-                        <img
-                          src={cleanUrl(pesanan.bukti_kirim_url)}
-                          alt='Bukti Kirim'
-                          className='w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm border border-blue-200/50'
-                        />
+                        <ImageCarousel rawUrlData={pesanan.bukti_kirim_url} />
                       </div>
                     )}
 
@@ -1155,14 +860,10 @@ function StatusContent() {
   );
 }
 
-// ==========================================
-// 3. KOMPONEN PEMBUNGKUS UTAMA (WAJIB ADA SUSPENSE!)
-// ==========================================
-import { Suspense } from 'react'; // Pastikan ini diimpor dari react
+import { Suspense } from 'react';
 
 export default function LacakStatusPage() {
   return (
-    // Jika jamaah internetnya lambat, teks ini akan muncul sejenak saat Next.js merakit halaman
     <Suspense
       fallback={
         <div className='min-h-screen flex items-center justify-center text-teal-700 font-bold'>

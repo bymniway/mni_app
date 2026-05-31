@@ -20,6 +20,7 @@ import {
   QrCode,
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import imageCompression from 'browser-image-compression';
 
 function CheckoutForm() {
   const searchParams = useSearchParams();
@@ -145,8 +146,63 @@ function CheckoutForm() {
       minimumFractionDigits: 0,
     }).format(angka);
 
-  // FUNGSI SUBMIT KE-1: Validasi data dan buka Pop-up Niat
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // // FUNGSI SUBMIT KE-1: Validasi data dan buka Pop-up Niat
+  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   if (metode === 'Lunas' && !file)
+  //     return alert('Mohon unggah bukti transfer pembayaran.');
+
+  //   for (const m of mudhohiList) {
+  //     if (
+  //       !m.nama.trim() ||
+  //       !m.whatsapp.trim() ||
+  //       !m.email.trim() ||
+  //       !m.alamat.trim()
+  //     ) {
+  //       return alert(
+  //         'Mohon lengkapi data Nama, WA, Email, dan Alamat untuk setiap pengkurban.',
+  //       );
+  //     }
+  //   }
+
+  //   const formData = new FormData();
+  //   if (file) formData.append('file', file);
+  //   formData.append('hewanId', hewanId || '');
+  //   formData.append('totalBayar', totalBayar.toString());
+  //   formData.append('metode', metode);
+  //   formData.append('mudhohiList', JSON.stringify(mudhohiList));
+
+  //   setPendingFormData(formData);
+  //   setShowNiatModal(true); // Membuka Modal Niat
+  // };
+
+  // // FUNGSI SUBMIT KE-2: Eksekusi pengiriman data ke server setelah baca Niat
+  // const executeFinalCheckout = async () => {
+  //   if (!pendingFormData) return;
+  //   setIsLoading(true);
+
+  //   try {
+  //     const response = await fetch('/api/checkout', {
+  //       method: 'POST',
+  //       body: pendingFormData,
+  //     });
+  //     const result = await response.json();
+  //     if (response.ok) {
+  //       setShowNiatModal(false);
+  //       router.push('/kurban/status');
+  //     } else {
+  //       alert(`Pendaftaran Gagal: ${result.error}`);
+  //       setShowNiatModal(false);
+  //     }
+  //   } catch (error) {
+  //     alert('Terjadi kesalahan koneksi server.');
+  //     setShowNiatModal(false);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (metode === 'Lunas' && !file)
       return alert('Mohon unggah bukti transfer pembayaran.');
@@ -164,18 +220,39 @@ function CheckoutForm() {
       }
     }
 
-    const formData = new FormData();
-    if (file) formData.append('file', file);
-    formData.append('hewanId', hewanId || '');
-    formData.append('totalBayar', totalBayar.toString());
-    formData.append('metode', metode);
-    formData.append('mudhohiList', JSON.stringify(mudhohiList));
+    setIsLoading(true);
 
-    setPendingFormData(formData);
-    setShowNiatModal(true); // Membuka Modal Niat
+    try {
+      const formData = new FormData();
+
+      if (file) {
+        const options = {
+          maxSizeMB: 1.5, // Maksimal 1.5 MB
+          maxWidthOrHeight: 1920,
+          useWebWorker: true, // Gunakan inti prosesor HP agar cepat
+        };
+
+        const compressedFile = await imageCompression(file, options);
+        formData.append('file', compressedFile);
+      }
+
+      formData.append('hewanId', hewanId || '');
+      formData.append('totalBayar', totalBayar.toString());
+      formData.append('metode', metode);
+      formData.append('mudhohiList', JSON.stringify(mudhohiList));
+
+      setPendingFormData(formData);
+      setShowNiatModal(true); // Membuka Modal Niat
+    } catch (error) {
+      console.error('Gagal memproses gambar:', error);
+      alert(
+        'Terjadi kesalahan saat membaca gambar. Silakan coba unggah ulang bukti transfer.',
+      );
+    } finally {
+      setIsLoading(false); // Matikan loading saat modal terbuka
+    }
   };
 
-  // FUNGSI SUBMIT KE-2: Eksekusi pengiriman data ke server setelah baca Niat
   const executeFinalCheckout = async () => {
     if (!pendingFormData) return;
     setIsLoading(true);
@@ -185,22 +262,25 @@ function CheckoutForm() {
         method: 'POST',
         body: pendingFormData,
       });
-      const result = await response.json();
-      if (response.ok) {
-        setShowNiatModal(false);
-        router.push('/kurban/status');
-      } else {
-        alert(`Pendaftaran Gagal: ${result.error}`);
-        setShowNiatModal(false);
+
+      if (!response.ok) {
+        let errorMessage = 'Terjadi kesalahan pada server MNI.';
+        try {
+          const result = await response.json();
+          errorMessage = result.error || errorMessage;
+        } catch (e) {}
+        throw new Error(errorMessage);
       }
-    } catch (error) {
-      alert('Terjadi kesalahan koneksi server.');
+
+      setShowNiatModal(false);
+      router.push('/kurban/status');
+    } catch (error: any) {
+      alert(`Pendaftaran Gagal: ${error.message}`);
       setShowNiatModal(false);
     } finally {
       setIsLoading(false);
     }
   };
-
   if (isFetchingData)
     return (
       <div className='min-h-[60vh] flex flex-col items-center justify-center space-y-4'>

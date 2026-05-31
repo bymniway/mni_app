@@ -13,6 +13,7 @@
     "@react-email/components": "^1.0.12",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "browser-image-compression": "^2.0.2",
     "firebase-admin": "^13.10.0",
     "framer-motion": "^12.38.0",
     "googleapis": "^171.4.0",

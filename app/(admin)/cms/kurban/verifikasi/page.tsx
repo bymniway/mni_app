@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import imageCompression from 'browser-image-compression';
 
 export default function VerifikasiKurbanPage() {
   const [pesananList, setPesananList] = useState<any[]>([]);
@@ -247,29 +248,108 @@ export default function VerifikasiKurbanPage() {
     }
   };
 
-  // LOGIKA PENYEMBELIHAN
+  // // LOGIKA PENYEMBELIHAN
+  // const handleSelesaikanKurban = async () => {
+  //   if (!selectedTrx || fileSembelih.length === 0) return alert('Pilih foto!');
+  //   setIsSelesaikanLoading(true);
+  //   try {
+  //     // Looping upload semua gambar
+  //     const uploadPromises = fileSembelih.map(async (file) => {
+  //       const formData = new FormData();
+  //       formData.append('file', file);
+  //       // Menembak langsung ke Alibaba Cloud OSS Jakarta
+  //       formData.append('provider', 'ALIBABA');
+  //       // Mengelompokkan gambar ke dalam folder khusus agar rapi di dasbor Alibaba
+  //       formData.append('folder', 'kurban-sembelih-assets');
+  //       const res = await fetch('/api/upload', {
+  //         method: 'POST',
+  //         body: formData,
+  //       });
+  //       const { url } = await res.json();
+  //       return url;
+  //     });
+  //     const urls = await Promise.all(uploadPromises);
+
+  //     if (!urls.length) throw new Error('Gagal mengunggah foto penyembelihan.');
+
+  //     const response = await fetch('/api/admin/kurban-selesai', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         idPesanan: selectedTrx.id,
+  //         emailUser: selectedTrx.email,
+  //         namaMudhohi: selectedTrx.nama_mudhohi,
+  //         kodeTrx: selectedTrx.kode_trx,
+  //         detailHewan: `${selectedTrx.hewan?.jenis} - ${selectedTrx.hewan?.tipe}`,
+
+  //         // PERBAIKAN: Ubah dari urls[0] menjadi urls agar semua gambar tersimpan!
+  //         gambarSembelihUrl: urls,
+  //       }),
+  //     });
+
+  //     if (!response.ok) throw new Error('Gagal memproses penyelesaian kurban.');
+
+  //     setFileSembelih([]);
+  //     alert(
+  //       'Kurban berhasil diselesaikan! Email laporan telah dikirim ke Pequrban.',
+  //     );
+  //     fetchPesanan(selectedTrx.id);
+  //   } catch (error: any) {
+  //     alert(error.message);
+  //   } finally {
+  //     setIsSelesaikanLoading(false);
+  //   }
+  // };
+
+  // LOGIKA PENYEMBELIHAN (VERSI BULLETPROOF)
   const handleSelesaikanKurban = async () => {
     if (!selectedTrx || fileSembelih.length === 0) return alert('Pilih foto!');
     setIsSelesaikanLoading(true);
-    try {
-      // Looping upload semua gambar
-      const uploadPromises = fileSembelih.map(async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        // Menembak langsung ke Alibaba Cloud OSS Jakarta
-        formData.append('provider', 'ALIBABA');
-        // Mengelompokkan gambar ke dalam folder khusus agar rapi di dasbor Alibaba
-        formData.append('folder', 'kurban-sembelih-assets');
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        const { url } = await res.json();
-        return url;
-      });
-      const urls = await Promise.all(uploadPromises);
 
-      if (!urls.length) throw new Error('Gagal mengunggah foto penyembelihan.');
+    try {
+      const urls: string[] = [];
+
+      for (const file of fileSembelih) {
+        try {
+          const options = {
+            maxSizeMB: 1.5, // Kunci maksimal di 1.5 MB
+            maxWidthOrHeight: 1920, // Pertahankan resolusi HD
+            useWebWorker: true,
+          };
+
+          const compressedFile = await imageCompression(file, options);
+
+          const formData = new FormData();
+          formData.append('file', compressedFile);
+          formData.append('provider', 'ALIBABA');
+          formData.append('folder', 'kurban-sembelih-assets');
+
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!res.ok) {
+            throw new Error(`Server menolak dengan status ${res.status}`);
+          }
+
+          const result = await res.json();
+          if (result.url) {
+            urls.push(result.url); // Masukkan ke daftar URL sukses
+          }
+        } catch (uploadError) {
+          console.error(`Gagal mengunggah ${file.name}:`, uploadError);
+          alert(
+            `Peringatan: Gagal mengunggah foto ${file.name}. Sistem akan mencoba melanjutkan.`,
+          );
+        }
+      }
+
+      if (urls.length === 0) {
+        throw new Error(
+          'Semua foto gagal diunggah. Silakan periksa jaringan internet Anda dan coba lagi.',
+        );
+      }
 
       const response = await fetch('/api/admin/kurban-selesai', {
         method: 'POST',
@@ -280,31 +360,27 @@ export default function VerifikasiKurbanPage() {
           namaMudhohi: selectedTrx.nama_mudhohi,
           kodeTrx: selectedTrx.kode_trx,
           detailHewan: `${selectedTrx.hewan?.jenis} - ${selectedTrx.hewan?.tipe}`,
-
-          // PERBAIKAN: Ubah dari urls[0] menjadi urls agar semua gambar tersimpan!
-          gambarSembelihUrl: urls,
+          gambarSembelihUrl: urls, // Kirim kumpulan URL yang berhasil
         }),
       });
 
-      if (!response.ok) throw new Error('Gagal memproses penyelesaian kurban.');
+      if (!response.ok)
+        throw new Error('Gagal memproses penyelesaian kurban di database.');
 
       setFileSembelih([]);
       alert(
-        'Kurban berhasil diselesaikan! Email laporan telah dikirim ke Pequrban.',
+        'Alhamdulillah, kurban berhasil diselesaikan! Email laporan telah dikirim ke Pequrban.',
       );
-      fetchPesanan(selectedTrx.id);
+      fetchPesanan(selectedTrx.id); // Refresh tabel
     } catch (error: any) {
-      alert(error.message);
+      alert(`Terjadi kesalahan sistem: ${error.message}`);
     } finally {
       setIsSelesaikanLoading(false);
     }
   };
-
-  // LOGIKA EKSEKUSI RESOLUSI (BATAL / PINDAH) + UPLOAD REFUND
   const handleEksekusiResolusi = async (tipe: 'batal' | 'pindah' | null) => {
     if (!selectedTrx || !tipe) return;
 
-    // 1. HITUNG DANA RIIL YANG SUDAH MASUK KAS MASJID SEJAUH INI
     const isBookingGres =
       selectedTrx.status_pesanan === 'Booking' &&
       !selectedTrx.bukti_transfer_url;
@@ -312,14 +388,12 @@ export default function VerifikasiKurbanPage() {
       ? 0
       : selectedTrx.total_bayar - (selectedTrx.kekurangan_dana || 0);
 
-    // 2. KALKULASI SELISIH UNTUK PINDAH HEWAN
     const hewanBaru = daftarHewanTersedia.find(
       (h) => h.id === hewanPenggantiId,
     );
     const hargaBaru = hewanBaru?.harga || 0;
     const selisih = hargaBaru - danaTerbayar; // Selisih murni dari uang yang sudah masuk
 
-    // 3. VALIDASI WAJIB REFUND (Hanya jika masjid benar-benar memegang uang jamaah)
     const isButuhRefund =
       (tipe === 'batal' && danaTerbayar > 0) ||
       (tipe === 'pindah' && selisih < 0);
@@ -338,7 +412,6 @@ export default function VerifikasiKurbanPage() {
         const formData = new FormData();
         formData.append('file', fileRefund);
         formData.append('provider', 'FIREBASE');
-        // Mengelompokkan berkas ke folder bukti transfer tahun ini
         formData.append('folder', 'refund-kurban-assets');
         const resUpload = await fetch('/api/upload', {
           method: 'POST',
@@ -350,7 +423,6 @@ export default function VerifikasiKurbanPage() {
         bukti_refund_url = resultUpload.url;
       }
 
-      // 4. PANGGIL API DENGAN VARIABEL DANA TERBAYAR
       const response = await fetch('/api/admin/resolusi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -399,7 +471,6 @@ export default function VerifikasiKurbanPage() {
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-0'>
-        {/* PANEL KIRI: DAFTAR TRANSAKSI */}
         <div className='lg:col-span-5 bg-white border border-slate-200 rounded-[1.5rem] shadow-sm flex flex-col h-[500px] lg:h-full overflow-hidden relative group/left'>
           <div className='p-4 border-b border-slate-100 bg-slate-50/80 space-y-3 shrink-0 relative z-10'>
             <div className='relative w-full'>
@@ -512,7 +583,6 @@ export default function VerifikasiKurbanPage() {
           </div>
         </div>
 
-        {/* PANEL KANAN: DETAIL & AKSI */}
         <div className='lg:col-span-7 bg-white border border-slate-200 rounded-[1.5rem] shadow-sm h-[600px] lg:h-full flex flex-col overflow-hidden relative'>
           {!selectedTrx ? (
             <div className='flex flex-col items-center justify-center h-full text-slate-400 space-y-4'>
@@ -525,7 +595,6 @@ export default function VerifikasiKurbanPage() {
             </div>
           ) : (
             <>
-              {/* Header Panel Kanan */}
               <div className='p-5 border-b border-slate-100 bg-white flex justify-between items-center shrink-0'>
                 <div>
                   <h2 className='text-xl font-bold text-slate-800 flex items-center gap-2'>
@@ -570,8 +639,7 @@ export default function VerifikasiKurbanPage() {
                       }`}>
                       {formatStatusDisplay(selectedTrx.status_pesanan)}
                     </span>
-                  </div>
-                  {/* TOMBOL MENU LANJUTAN */}
+                  </div>{' '}
                   <div className='border-l border-slate-200 pl-4'>
                     <button
                       onClick={() => {
@@ -586,9 +654,7 @@ export default function VerifikasiKurbanPage() {
                 </div>
               </div>
 
-              {/* Konten Detail */}
               <div className='flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-slate-50/30'>
-                {/* 1. KOMPONEN TRACKING BUKTI TRANSAKSI */}
                 <div className='bg-white rounded-2xl border border-slate-200 shadow-sm p-5'>
                   <h3 className='text-sm font-bold text-slate-800 mb-4 flex items-center gap-2'>
                     <ImageIcon className='w-4 h-4 text-teal-600' /> Dokumen
@@ -631,13 +697,11 @@ export default function VerifikasiKurbanPage() {
                       );
                     }
 
-                    // Tentukan gambar yang sedang dilihat
                     const currentImgUrl =
                       activeImage || listBukti[listBukti.length - 1].url;
 
                     return (
                       <div className='flex flex-col md:flex-row gap-6'>
-                        {/* Kiri: Viewer Utama */}
                         <div className='flex-1 relative group'>
                           <div className='bg-slate-100/50 rounded-xl p-2 border border-slate-200 flex justify-center items-center h-[280px] relative overflow-hidden'>
                             <img
@@ -653,7 +717,6 @@ export default function VerifikasiKurbanPage() {
                           </div>
                         </div>
 
-                        {/* Kanan: Timeline Tracker */}
                         <div className='w-full md:w-48 flex flex-col justify-center'>
                           <div className='border-l-2 border-slate-200 pl-4 space-y-6 relative ml-2'>
                             {listBukti.map((bukti) => (
@@ -679,7 +742,6 @@ export default function VerifikasiKurbanPage() {
                   })()}
                 </div>
 
-                {/* 2. Kotak Ringkasan Data (UPDATE DENGAN LOGIKA SELISIH) */}
                 <div className='bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden group'>
                   <Wallet className='absolute -left-6 -bottom-6 w-32 h-32 text-slate-50' />
                   <div className='relative z-10 space-y-4'>
@@ -702,8 +764,6 @@ export default function VerifikasiKurbanPage() {
                       </div>
                     </div>
 
-                    {/* Rincian Hewan & Selisih Harga */}
-                    {/* Rincian Hewan & Selisih Harga */}
                     <div className='pt-4 border-t border-slate-100 space-y-3'>
                       <div>
                         <p className='text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1'>
@@ -717,7 +777,6 @@ export default function VerifikasiKurbanPage() {
                         </p>
                       </div>
 
-                      {/* TAMPILAN MATEMATIKA SELARAS & HILANG SAAT LUNAS */}
                       {selectedTrx.kekurangan_dana > 0 &&
                         selectedTrx.status_pesanan !== 'Lunas' && (
                           <div className='bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1.5 shadow-sm'>
@@ -766,7 +825,6 @@ export default function VerifikasiKurbanPage() {
                   </div>
                 </div>
 
-                {/* 3. Info Tambahan (Alamat & Request Daging) */}
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                   <div className='bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group'>
                     <MapPin className='absolute -right-3 -bottom-3 w-16 h-16 text-slate-50 group-hover:scale-110 transition-transform duration-700 pointer-events-none' />
@@ -793,7 +851,6 @@ export default function VerifikasiKurbanPage() {
                   </div>
                 </div>
 
-                {/* AKSI: JIKA STATUS BOOKING */}
                 {formatStatusDisplay(selectedTrx.status_pesanan) ===
                   'Booking' && (
                   <div className='bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm text-center'>
@@ -813,7 +870,6 @@ export default function VerifikasiKurbanPage() {
                   </div>
                 )}
 
-                {/* 4. AKSI: MENUNGGU VERIFIKASI */}
                 {formatStatusDisplay(selectedTrx.status_pesanan) ===
                   'Menunggu' && (
                   <div className='bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4'>
@@ -862,7 +918,6 @@ export default function VerifikasiKurbanPage() {
                   </div>
                 )}
 
-                {/* 5. AKSI: LUNAS (FORM PENYEMBELIHAN) */}
                 {formatStatusDisplay(selectedTrx.status_pesanan) ===
                   'Lunas' && (
                   <div className='bg-emerald-50/50 border border-emerald-100 rounded-2xl p-5 shadow-sm space-y-4'>
@@ -893,20 +948,6 @@ export default function VerifikasiKurbanPage() {
                         className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
                       />
                     </div>
-                    {/* <div className='border-2 border-dashed border-emerald-200 bg-white rounded-xl p-6 text-center hover:bg-emerald-50 transition-colors cursor-pointer relative'>
-                      <UploadCloud className='w-8 h-8 text-emerald-500 mx-auto mb-3' />
-                      <p className='text-sm font-semibold text-emerald-700'>
-                        {fileSembelih ? fileSembelih.name : 'Pilih Foto Kurban'}
-                      </p>
-                      <input
-                        type='file'
-                        accept='image/*'
-                        onChange={(e) =>
-                          setFileSembelih(e.target.files?.[0] || null)
-                        }
-                        className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
-                      />
-                    </div> */}
                     <button
                       onClick={handleSelesaikanKurban}
                       disabled={isSelesaikanLoading || !fileSembelih}
@@ -928,7 +969,6 @@ export default function VerifikasiKurbanPage() {
         </div>
       </div>
 
-      {/* ================= MODAL TINDAKAN LANJUTAN (BATAL / PINDAH HEWAN) ================= */}
       {showModalResolusi && selectedTrx && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in'>
           <div className='bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden'>
@@ -961,7 +1001,6 @@ export default function VerifikasiKurbanPage() {
                 </button>
               </div>
 
-              {/* LOGIKA PINDAH HEWAN */}
               {tipeResolusi === 'pindah' && (
                 <div className='space-y-4 animate-in slide-in-from-top-2'>
                   <div>
@@ -992,7 +1031,6 @@ export default function VerifikasiKurbanPage() {
                         (h) => h.id === hewanPenggantiId,
                       );
 
-                      // Gunakan logika yang sama dengan fungsi eksekusi di atas
                       const isBookingGres =
                         selectedTrx.status_pesanan === 'Booking' &&
                         !selectedTrx.bukti_transfer_url;
@@ -1036,7 +1074,6 @@ export default function VerifikasiKurbanPage() {
                             </span>
                           </div>
 
-                          {/* Input file refund otomatis tersembunyi jika danaTerbayar adalah 0 */}
                           {selisih < 0 && (
                             <div className='mt-4 pt-4 border-t border-slate-200'>
                               <label className='text-xs font-bold text-slate-700 mb-1 block'>
@@ -1058,7 +1095,6 @@ export default function VerifikasiKurbanPage() {
                 </div>
               )}
 
-              {/* LOGIKA BATAL */}
               {tipeResolusi === 'batal' && (
                 <div className='bg-red-50 p-4 rounded-xl border border-red-100 animate-in slide-in-from-top-2'>
                   <p className='text-sm text-red-800 font-medium mb-2'>
@@ -1108,7 +1144,6 @@ export default function VerifikasiKurbanPage() {
         </div>
       )}
 
-      {/* MODAL ZOOM GAMBAR */}
       {isZoomed && activeImage && (
         <div className='fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in'>
           <button

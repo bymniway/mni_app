@@ -15,15 +15,13 @@ import {
   WalletCards,
   Receipt,
   MessageCircle,
-  FileText, // Icon untuk Daftar
-  UserCheck, // Icon untuk Verifikasi
-  CircleCheckBig, // Icon untuk Lunas
-  XCircle, // Icon untuk status Batal
+  FileText,
+  UserCheck,
+  CircleCheckBig,
+  XCircle,
 } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 
-// ==========================================
-// DESAIN STEP TRACKER PREMIUM & PROFESIONAL
-// ==========================================
 const PremiumStepTracker = ({ status }: { status: string }) => {
   const steps = [
     { id: 1, label: 'Pendaftaran', desc: 'Booking via Web', icon: FileText },
@@ -125,9 +123,6 @@ const PremiumStepTracker = ({ status }: { status: string }) => {
   );
 };
 
-// ==========================================
-// KOMPONEN UTAMA HALAMAN KONFIRMASI
-// ==========================================
 export default function KonfirmasiPage() {
   const searchParams = useSearchParams();
   const hewanId = searchParams.get('hewanId');
@@ -142,6 +137,7 @@ export default function KonfirmasiPage() {
   const [rekeningTujuan, setRekeningTujuan] = useState(
     'Bank BSI 7331949738 a.n Masjid Nurul Iman LAN',
   );
+  const [nomorWaPanitia, setNomorWaPanitia] = useState('6285199396633');
 
   const eksekusiCariPesanan = useCallback(async (kode: string) => {
     if (!kode) return;
@@ -184,56 +180,121 @@ export default function KonfirmasiPage() {
   }, [file]);
   // 1. Simpan rekening di state global komponen
 
-  // 2. Efek untuk mengambil rekening (Jalankan saat pesanan ditemukan)
+  // 2. Efek untuk mengambil pengaturan web (Jalankan saat komponen dimuat)
   useEffect(() => {
-    const fetchRekening = async () => {
+    const fetchPengaturan = async () => {
       try {
+        // Ambil banyak pengaturan sekaligus menggunakan .in()
         const { data, error } = await supabase
           .from('pengaturan_web')
-          .select('nilai')
-          .eq('kunci', 'kurban_rekening')
-          .single();
+          .select('kunci, nilai')
+          .in('kunci', ['kurban_rekening', 'kurban_nomor_wa']);
 
-        if (data) setRekeningTujuan(data.nilai);
+        if (error) throw error;
+
+        if (data) {
+          // Cari masing-masing kunci
+          const rekening = data.find((d) => d.kunci === 'kurban_rekening');
+          const wa = data.find((d) => d.kunci === 'kurban_nomor_wa');
+
+          if (rekening && rekening.nilai) setRekeningTujuan(rekening.nilai);
+          if (wa && wa.nilai) setNomorWaPanitia(wa.nilai);
+        }
       } catch (err) {
-        console.error('Gagal ambil rekening:', err);
+        console.error(
+          'Gagal ambil nomor rekening dan nomor WA dari pengaturan web:',
+          err,
+        );
       }
     };
 
-    fetchRekening();
-  }, []); // Jalankan cukup sekali saat halaman dimuat
+    fetchPengaturan();
+  }, []);
+
+  // const handleUpload = async () => {
+  //   if (!file || !pesanan)
+  //     return alert('Silakan pilih foto bukti transfer terlebih dahulu!');
+  //   setIsUploading(true);
+
+  //   const formData = new FormData();
+  //   formData.append('file', file);
+  //   formData.append('pesananId', pesanan.id);
+
+  //   try {
+  //     const response = await fetch('/api/konfirmasi', {
+  //       method: 'POST',
+  //       body: formData,
+  //     });
+
+  //     const result = await response.json();
+
+  //     if (response.ok) {
+  //       setPesanan({
+  //         ...pesanan,
+  //         status_pesanan: 'Menunggu',
+  //         ...(pesanan.bukti_transfer_url
+  //           ? { bukti_tf_tambahan_url: result.url }
+  //           : { bukti_transfer_url: result.url }),
+  //       });
+  //     } else {
+  //       alert(`Gagal: ${result.error}`);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert('Gagal menghubungi server untuk mengunggah bukti transfer.');
+  //   } finally {
+  //     setIsUploading(false);
+  //   }
+  // };
 
   const handleUpload = async () => {
     if (!file || !pesanan)
       return alert('Silakan pilih foto bukti transfer terlebih dahulu!');
+
+    // Tampilkan efek loading seketika agar tombol tidak di-spam klik
     setIsUploading(true);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('pesananId', pesanan.id);
-
     try {
+      const options = {
+        maxSizeMB: 1.5, // Batasi ukuran maksimal 1.5 MB
+        maxWidthOrHeight: 1920, // Jaga agar struk tetap terbaca jelas (HD)
+        useWebWorker: true,
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+      formData.append('pesananId', pesanan.id);
+
       const response = await fetch('/api/konfirmasi', {
         method: 'POST',
         body: formData,
       });
 
+      if (!response.ok) {
+        const errResult = await response.json().catch(() => ({
+          error: `Server menolak dengan status ${response.status}`,
+        }));
+        throw new Error(errResult.error || 'Terjadi kesalahan pada server MNI');
+      }
+
       const result = await response.json();
 
-      if (response.ok) {
-        setPesanan({
-          ...pesanan,
-          status_pesanan: 'Menunggu',
-          ...(pesanan.bukti_transfer_url
-            ? { bukti_tf_tambahan_url: result.url }
-            : { bukti_transfer_url: result.url }),
-        });
-      } else {
-        alert(`Gagal: ${result.error}`);
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Gagal menghubungi server untuk mengunggah bukti transfer.');
+      setPesanan({
+        ...pesanan,
+        status_pesanan: 'Menunggu',
+        ...(pesanan.bukti_transfer_url
+          ? { bukti_tf_tambahan_url: result.url }
+          : { bukti_transfer_url: result.url }),
+      });
+
+      alert('Alhamdulillah, bukti transfer berhasil diunggah!');
+    } catch (error: any) {
+      console.error('Upload Error:', error);
+      alert(
+        `Peringatan: ${error.message || 'Gagal mengunggah bukti transfer.'}`,
+      );
     } finally {
       setIsUploading(false);
     }
@@ -242,7 +303,14 @@ export default function KonfirmasiPage() {
   const getWaLink = () => {
     if (!pesanan) return '#';
     const msg = `Halo Panitia Kurban MNI, saya ${pesanan.nama_mudhohi}, terkait transaksi ${pesanan.kode_trx} dengan status ${pesanan.status_pesanan}. Mohon bantuannya.`;
-    return `https://wa.me/6285777577330?text=${encodeURIComponent(msg)}`;
+
+    let cleanWa = nomorWaPanitia.replace(/\D/g, '');
+
+    if (cleanWa.startsWith('0')) {
+      cleanWa = '62' + cleanWa.substring(1);
+    }
+
+    return `https://wa.me/${cleanWa}?text=${encodeURIComponent(msg)}`;
   };
 
   // Helper untuk format tanggal yang aman dari Invalid Date

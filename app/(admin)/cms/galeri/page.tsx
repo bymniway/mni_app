@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import GaleriKegiatan from '@/components/public/GaleriKegiatan';
 import { Save, Loader2, MousePointerClick, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import imageCompression from 'browser-image-compression';
 
 export default function EditorGaleri() {
   const [isLoading, setIsLoading] = useState(true);
@@ -79,28 +80,39 @@ export default function EditorGaleri() {
     const uploadedUrls: string[] = [];
 
     for (const file of files) {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      formData.append('provider', 'ALIBABA');
-
-      formData.append('folder', 'galeri');
-
       try {
+        const options = {
+          maxSizeMB: 1.5, // Otomatis diperas di bawah 2MB
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        };
+
+        // Browser akan memproses gambar ini sejenak sebelum dikirim
+        const compressedFile = await imageCompression(file, options);
+
+        const formData = new FormData();
+
+        formData.append('file', compressedFile);
+        formData.append('provider', 'ALIBABA');
+        formData.append('folder', 'galeri');
+
         const res = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
         });
 
+        if (!res.ok) {
+          throw new Error(`Server menolak dengan status ${res.status}`);
+        }
+
         const result = await res.json();
 
-        if (res.ok && result.url) {
+        if (result.url) {
           uploadedUrls.push(result.url);
-        } else {
-          console.error(`Gagal memproses ${file.name}:`, result.error);
         }
       } catch (error) {
-        console.error(`Koneksi terputus saat mengunggah ${file.name}:`, error);
+        alert(`Gagal mengunggah ${file.name}. Silakan coba lagi.`);
+        console.error(`Gagal upload ${file.name}:`, error);
       }
     }
 
@@ -121,6 +133,59 @@ export default function EditorGaleri() {
     }
     setIsUploading(false);
   };
+  // const handleImageUpload = async (
+  //   id: string,
+  //   e: React.ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   const files = Array.from(e.target.files || []);
+  //   if (files.length === 0) return;
+
+  //   setIsUploading(true);
+  //   const uploadedUrls: string[] = [];
+
+  //   for (const file of files) {
+  //     const formData = new FormData();
+  //     formData.append('file', file);
+
+  //     formData.append('provider', 'ALIBABA');
+
+  //     formData.append('folder', 'galeri');
+
+  //     try {
+  //       const res = await fetch('/api/upload', {
+  //         method: 'POST',
+  //         body: formData,
+  //       });
+
+  //       const result = await res.json();
+
+  //       if (res.ok && result.url) {
+  //         uploadedUrls.push(result.url);
+  //       } else {
+  //         console.error(`Gagal memproses ${file.name}:`, result.error);
+  //       }
+  //     } catch (error) {
+  //       console.error(`Koneksi terputus saat mengunggah ${file.name}:`, error);
+  //     }
+  //   }
+
+  //   if (uploadedUrls.length > 0) {
+  //     setGalleryList((prev) =>
+  //       prev.map((p) => {
+  //         if (p.id === id) {
+  //           const currentUrls =
+  //             p.gambar_urls || (p.gambar_url ? [p.gambar_url] : []);
+  //           return {
+  //             ...p,
+  //             gambar_urls: [...currentUrls, ...uploadedUrls],
+  //           };
+  //         }
+  //         return p;
+  //       }),
+  //     );
+  //   }
+  //   setIsUploading(false);
+  // };
 
   const handlePublish = async () => {
     setIsSaving(true);

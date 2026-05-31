@@ -38,6 +38,7 @@ export default function KelolaHewanKurban() {
   const isSelectionMode = selectedIds.length > 0;
 
   // Pengaturan Pembayaran Kurban
+  const [nomorWaPanitia, setNomorWaPanitia] = useState('');
   const [rekeningKurban, setRekeningKurban] = useState('');
   const [qrisKurbanUrl, setQrisKurbanUrl] = useState('');
   const [isSavingSetting, setIsSavingSetting] = useState(false);
@@ -99,6 +100,9 @@ export default function KelolaHewanKurban() {
       );
       setQrisKurbanUrl(
         dataWeb.find((s) => s.kunci === 'kurban_qris_url')?.nilai || '',
+      );
+      setNomorWaPanitia(
+        dataWeb.find((s) => s.kunci === 'kurban_nomor_wa')?.nilai || '',
       );
     }
     setIsLoading(false);
@@ -168,6 +172,7 @@ export default function KelolaHewanKurban() {
         [
           { kunci: 'kurban_rekening', nilai: rekeningKurban },
           { kunci: 'kurban_qris_url', nilai: qrisKurbanUrl },
+          { kunci: 'kurban_nomor_wa', nilai: nomorWaPanitia },
         ],
         { onConflict: 'kunci' },
       );
@@ -472,6 +477,18 @@ export default function KelolaHewanKurban() {
                   className='w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-mni-primary/20 focus:border-mni-primary bg-gray-50 focus:bg-white transition-all font-medium text-gray-800'
                 />
               </div>
+              <div>
+                <label className='block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2'>
+                  Nomor WhatsApp Panitia (Penerima Konfirmasi)
+                </label>
+                <input
+                  type='text'
+                  value={nomorWaPanitia}
+                  onChange={(e) => setNomorWaPanitia(e.target.value)}
+                  placeholder='Contoh: 085777577330 (Gunakan awalan 0 atau 62)'
+                  className='w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-mni-primary/20 focus:border-mni-primary bg-gray-50 focus:bg-white transition-all font-medium text-gray-800'
+                />
+              </div>
               <div className='pt-2'>
                 <button
                   onClick={handleSimpanPengaturan}
@@ -482,7 +499,7 @@ export default function KelolaHewanKurban() {
                   ) : (
                     <Save className='w-4 h-4 mr-2' />
                   )}{' '}
-                  {isSavingSetting ? 'Menyimpan...' : 'Simpan Pembayaran'}
+                  {isSavingSetting ? 'Menyimpan...' : 'Simpan Pengaturan'}
                 </button>
               </div>
             </div>
