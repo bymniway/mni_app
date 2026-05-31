@@ -1,0 +1,15 @@
+name: Keep Alive Cron Job
+
+on:
+  schedule:
+    - cron: '0 0 * * 1,3,5'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping MNI Keep-Alive API
+        run: |
+          curl -sSf https://mni-app.vercel.app/api/keep-alive > /dev/null
+          echo "Ping berhasil dikirim ke server MNI."
