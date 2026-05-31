@@ -3,13 +3,11 @@ import TombolTambahAdmin from './TombolTambahAdmin';
 import AdminGrid from './AdminGrid';
 
 export default async function ManajemenAdminPage() {
-  // GUNAKAN JALUR VIP: Kunci Master (Bypass RLS)
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
-  // Ambil semua data admin dari database tanpa terhalang RLS
   const { data: admins, error } = await supabaseAdmin
     .from('admin_profiles')
     .select('*')
@@ -23,7 +21,6 @@ export default async function ManajemenAdminPage() {
     );
   }
 
-  // LOGIKA PENGURUTAN: Kasta Root (Dewa) harus selalu tampil di urutan teratas
   const sortedAdmins =
     admins?.sort((a, b) => {
       if (a.is_root === b.is_root) return 0;
@@ -42,7 +39,6 @@ export default async function ManajemenAdminPage() {
         <TombolTambahAdmin />
       </div>
 
-      {/* Tampilkan Grid Kartu Animasi */}
       <AdminGrid admins={sortedAdmins} />
     </div>
   );

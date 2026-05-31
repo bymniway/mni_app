@@ -46,9 +46,6 @@ export async function POST(request: Request) {
       }
     };
 
-    // =========================================================================
-    // 2. EKSEKUSI DATABASE & LOGIKA STATUS + HARGA (PEMBERSIHAN TOTAL)
-    // =========================================================================
     let selisihDanaHtml = '';
     let gambarRefundAtauTombolHtml = '';
 
@@ -184,9 +181,6 @@ export async function POST(request: Request) {
       return val || 0;
     }
 
-    // =========================================================================
-    // 3. LOGIKA MERAKIT EMAIL
-    // =========================================================================
     const { data: settings } = await supabase
       .from('pengaturan_web')
       .select('*');

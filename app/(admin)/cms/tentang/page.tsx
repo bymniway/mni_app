@@ -11,7 +11,6 @@ export default function EditorProfil() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // STATE BARU: MULTI-SELECT PENGURUS (ID bertipe number)
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const isSelectionMode = selectedIds.length > 0;
 
@@ -94,52 +93,19 @@ export default function EditorProfil() {
     setPengurusList((prev) => [...prev, newPengurus]);
   };
 
-  // const handlePengurusImageUpload = async (
-  //   id: number,
-  //   e: React.ChangeEvent<HTMLInputElement>,
-  // ) => {
-  //   const file = e.target.files?.[0];
-  //   if (!file) return;
-  //   setIsUploading(true);
-  //   const formData = new FormData();
-  //   formData.append('file', file);
-  //   formData.append('bucket', 'mni-assets');
-  //   try {
-  //     const res = await fetch('/api/upload', {
-  //       method: 'POST',
-  //       body: formData,
-  //     });
-  //     const result = await res.json();
-  //     if (result.url) {
-  //       setPengurusList((prev) =>
-  //         prev.map((p) => (p.id === id ? { ...p, gambar_url: result.url } : p)),
-  //       );
-  //     }
-  //   } catch (error) {
-  //     alert('Gagal upload gambar pengurus.');
-  //   } finally {
-  //     setIsUploading(false);
-  //   }
-  // };
-
   const handlePengurusImageUpload = async (
     id: number,
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    // Mengambil satu gambar saja dari input
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Menyalakan efek loading di layar
     setIsUploading(true);
 
     const formData = new FormData();
     formData.append('file', file);
 
-    // 1. INSTRUKSI MULTI-CLOUD (CLOUDINARY)
-    // Mengarahkan berkas ke Cloudinary khusus untuk optimasi aset antarmuka
     formData.append('provider', 'CLOUDINARY');
-    // Mengelompokkan gambar ke folder khusus agar rapi di dasbor Cloudinary
     formData.append('folder', 'pengurus-assets');
 
     try {
@@ -150,7 +116,6 @@ export default function EditorProfil() {
 
       const result = await res.json();
 
-      // 2. PEMBARUAN STATE UI SECARA LANGSUNG
       if (res.ok && result.url) {
         setPengurusList((prev) =>
           prev.map((p) => (p.id === id ? { ...p, foto_url: result.url } : p)),
@@ -163,7 +128,6 @@ export default function EditorProfil() {
       console.error('Koneksi terputus:', error);
       alert('Koneksi jaringan bermasalah saat upload gambar.');
     } finally {
-      // Mematikan efek loading terlepas dari sukses atau gagal
       setIsUploading(false);
     }
   };
@@ -196,7 +160,6 @@ export default function EditorProfil() {
     alert('Perubahan Profil & Kepengurusan berhasil dipublikasikan!');
   };
 
-  // FUNGSI BARU: MULTI-SELECT BULK DELETE
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
@@ -221,9 +184,6 @@ export default function EditorProfil() {
 
   return (
     <div className='relative min-h-screen'>
-      {/* ==========================================
-          INJECT ANIMASI JIGGLE ELEGANT
-          ========================================== */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -245,9 +205,6 @@ export default function EditorProfil() {
         }}
       />
 
-      {/* ==========================================
-          FLOATING ACTION BAR (PILL) ALA MACOS
-          ========================================== */}
       <AnimatePresence>
         {isSelectionMode && (
           <motion.div
@@ -323,7 +280,6 @@ export default function EditorProfil() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className='bg-gray-50 -mx-4 md:-mx-8 px-4 md:px-8 py-8 min-h-screen'>
-        {/* PEMBUNGKUS COMPONENT UNTUK MENCEGAH HIGHLIGHT TEKS SAAT MULTI-SELECT */}
         <div className={isSelectionMode ? 'select-none' : ''}>
           <ProfilTentang
             data={form}
@@ -334,7 +290,6 @@ export default function EditorProfil() {
             onPengurusDelete={handlePengurusDelete}
             onPengurusAdd={handlePengurusAdd}
             onPengurusImageUpload={handlePengurusImageUpload}
-            // PROPS MULTI-SELECT
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
             isSelectionMode={isSelectionMode}

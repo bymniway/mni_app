@@ -1,4 +1,5 @@
 import './globals.css';
+import PublicPreloader from '../components/public/PublicPreloader';
 
 export const metadata = {
   title: 'Masjid Nurul Iman LAN',
@@ -12,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang='id'>
-      <body suppressHydrationWarning>{children}</body>
+      <body className='[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
+        <PublicPreloader />
+
+        {children}
+      </body>
     </html>
   );
 }

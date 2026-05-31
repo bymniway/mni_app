@@ -500,12 +500,10 @@ export default function HeroBeranda({
   const currentZiswafText =
     ziswafInfoTexts[safeActiveIdx % (ziswafInfoTexts?.length || 1)];
 
-  // 3. CAROUSEL TENGAH BERHENTI ROTASI: Paksa selalu nampil data ke-0 saat diedit
   const kurbanDataView = isEditor ? 0 : safeActiveIdx % 2;
   const ziswafDataView = isEditor ? 0 : safeActiveIdx % 3;
   const viewRolling2 = isEditor ? 0 : safeFinanceIdx % 2;
 
-  // ================= GALERI SLIDER (VERSI JSON PENGATURAN WEB) =================
   const [realGaleri, setRealGaleri] = useState<any[]>([]);
 
   useEffect(() => {

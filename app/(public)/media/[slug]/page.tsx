@@ -31,9 +31,6 @@ import {
   ScanLine,
 } from 'lucide-react';
 
-// ==========================================
-// UTILITY FUNCTIONS
-// ==========================================
 const formatWaktu = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -58,9 +55,6 @@ const iconMap: any = {
   Artikel: FileText,
 };
 
-// ==========================================
-// MAIN COMPONENT
-// ==========================================
 export default function DetailMediaPage() {
   const { slug } = useParams();
   const router = useRouter();
@@ -214,9 +208,6 @@ export default function DetailMediaPage() {
     };
   }, [isAutoScrolling]);
 
-  // ==========================================
-  // FITUR: AUTO-APPEND LINK SAAT COPY TEKS
-  // ==========================================
   useEffect(() => {
     const handleCopy = (e: ClipboardEvent) => {
       const selection = window.getSelection();

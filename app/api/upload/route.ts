@@ -69,9 +69,6 @@ export async function POST(request: Request) {
     const targetPath = `${folder}/${finalFileName}`;
     let publicUrl = '';
 
-    // ==========================================
-    // JALUR CABANG PENYEDIA STORAGE (MULTICLOUD)
-    // ==========================================
     switch (provider.toUpperCase()) {
       case 'ALIBABA': {
         // Cocok untuk Galeri Publik & Dokumentasi Kurban
@@ -113,7 +110,7 @@ export async function POST(request: Request) {
         // Panggil endpoint REST API Cloudinary secara native tanpa SDK berat
         const cloudinaryForm = new FormData();
         cloudinaryForm.append('file', fileUri);
-        cloudinaryForm.append('upload_preset', 'mni_presets'); // Mas buat preset dulu di dasbor Cloudinary
+        cloudinaryForm.append('upload_preset', 'mni_presets');
         cloudinaryForm.append('folder', folder);
 
         const cloudName = process.env.CLOUDINARY_URL?.split('@')[1];
@@ -141,7 +138,7 @@ export async function POST(request: Request) {
         );
     }
 
-    // Kembalikan satu URL bersih yang siap dimasukkan ke Database Supabase Mas
+    // Kembalikan satu URL bersih yang siap dimasukkan ke Database Supabase
     return NextResponse.json({ url: publicUrl }, { status: 200 });
   } catch (error) {
     console.error('Multi-Cloud API Upload Error:', error);

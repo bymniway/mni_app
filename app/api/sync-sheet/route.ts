@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "'kurban mni'!A1", // Pastikan nama sheet ini persis dengan yang di bawah/tab Google Sheets Anda
+      range: "'kurban mni'!A1", // Pastikan nama sheet ini persis dengan yang di bawah/tab Google Sheets
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values,

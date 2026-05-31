@@ -84,9 +84,6 @@ export default function AksiAdmin({ admin }: { admin: any }) {
     setPasswordLoading(false);
   };
 
-  // ==========================================
-  // MODAL HAPUS SATUAN (Desain Baru + Detail Lengkap)
-  // ==========================================
   const ModalHapus = () => (
     <div className='fixed inset-0 z-[100] bg-zinc-950/40 backdrop-blur-sm flex justify-center items-center p-4 text-left'>
       <div className='bg-white rounded-[2rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200'>
@@ -103,7 +100,6 @@ export default function AksiAdmin({ admin }: { admin: any }) {
             yang akan dihapus:
           </p>
 
-          {/* Kotak Rincian Data Admin */}
           <div className='bg-zinc-50 text-left p-4 rounded-2xl border border-zinc-100 mb-6 space-y-3'>
             <div>
               <div className='text-[10px] font-bold text-zinc-400 uppercase tracking-widest'>

@@ -242,14 +242,14 @@ function CheckoutForm() {
       formData.append('mudhohiList', JSON.stringify(mudhohiList));
 
       setPendingFormData(formData);
-      setShowNiatModal(true); // Membuka Modal Niat
+      setShowNiatModal(true);
     } catch (error) {
       console.error('Gagal memproses gambar:', error);
       alert(
         'Terjadi kesalahan saat membaca gambar. Silakan coba unggah ulang bukti transfer.',
       );
     } finally {
-      setIsLoading(false); // Matikan loading saat modal terbuka
+      setIsLoading(false);
     }
   };
 

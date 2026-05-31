@@ -13,7 +13,6 @@ export async function POST(request: Request) {
     const newStatus = action === 'terima' ? 'DITERIMA' : 'DITOLAK';
     const isDiterima = newStatus === 'DITERIMA';
 
-    // 1. UPDATE STATUS DI TABEL TRANSAKSI
     const { data: trxData } = await supabase
       .from('transaksi_ziswaf')
       .update({ status_pesanan: newStatus })
@@ -22,21 +21,15 @@ export async function POST(request: Request) {
       .single();
     if (!trxData) throw new Error('Transaksi tidak ditemukan');
 
-    // =========================================================================
-    // FITUR BARU: AUTO-INCREMENT BAR PROGRESS WAKAF
-    // Jika transaksi Diterima dan kategorinya adalah Wakaf, otomatis tambah dana
-    // =========================================================================
     if (
       isDiterima &&
       trxData.kategori &&
       trxData.kategori.startsWith('Wakaf')
     ) {
-      // Ekstrak Judul Wakaf dari format "Wakaf (Nama Program)" -> "Nama Program"
       const match = trxData.kategori.match(/Wakaf \((.*?)\)/);
       if (match && match[1]) {
         const wakafTargetTitle = match[1];
 
-        // Ambil JSON data Wakaf dari pengaturan_web
         const { data: webDataWakaf } = await supabase
           .from('pengaturan_web')
           .select('nilai')
@@ -73,9 +66,7 @@ export async function POST(request: Request) {
         }
       }
     }
-    // =========================================================================
 
-    // 2. SIAPKAN EMAIL NOTIFIKASI
     const { data: settings } = await supabase
       .from('pengaturan_web')
       .select('*');

@@ -133,25 +133,19 @@ const DraggableCategory = ({
   );
 };
 
-// ==========================================
-// MAIN DASHBOARD COMPONENT
-// ==========================================
 export default function RiwayatPesananZiswaf() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('Semua');
   const [filterKategori, setFilterKategori] = useState('Semua');
 
-  // Y-Axis Customization States
   const [chartYMin, setChartYMin] = useState('');
   const [chartYMax, setChartYMax] = useState('');
 
   const [selectedTrx, setSelectedTrx] = useState<any>(null);
 
-  // SCROLL STATES
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -218,7 +212,6 @@ export default function RiwayatPesananZiswaf() {
     return name;
   };
 
-  // 1. Filter Multi-parameter
   const listFilteredByKategoriAndSearch = useMemo(() => {
     return transactions.filter((p) => {
       const matchKategori =
@@ -246,7 +239,6 @@ export default function RiwayatPesananZiswaf() {
     });
   };
 
-  // EXPORT EXCEL
   const handleExportExcel = () => {
     const sortedData = getSortedData();
     if (sortedData.length === 0) return alert('Tidak ada data untuk diexport');
@@ -265,7 +257,6 @@ export default function RiwayatPesananZiswaf() {
     XLSX.writeFile(workbook, `Data_ZISWAF_MNI_${new Date().getTime()}.xlsx`);
   };
 
-  // CETAK PDF
   const handlePrintPDF = () => {
     const sortedData = getSortedData();
     if (sortedData.length === 0) return alert('Tidak ada data untuk dicetak');
@@ -357,7 +348,6 @@ export default function RiwayatPesananZiswaf() {
     };
   }, [listFilteredByKategoriAndSearch]);
 
-  // PENGUMPULAN DATA STATISTIK KATEGORI ZISWAF UNTUK BLOK DRAGGABLE
   const kategoriStats = useMemo(() => {
     const stats: Record<
       string,
@@ -373,7 +363,6 @@ export default function RiwayatPesananZiswaf() {
 
       const katLow = p.kategori?.toLowerCase() || '';
 
-      // Tentukan Induk Jenis Ziswaf
       if (katLow.includes('fitrah')) jenis = 'Zakat Fitrah';
       else if (katLow.includes('mal') || katLow.includes('maal'))
         jenis = 'Zakat Mal';
@@ -437,7 +426,6 @@ export default function RiwayatPesananZiswaf() {
     return [min, max];
   }, [chartYMin, chartYMax]);
 
-  // Ekstraksi untuk Layout Row 1 & Row 2
   const row1Keys = ['Zakat Mal', 'Zakat Fitrah'];
   const row1Entries = Object.entries(kategoriStats)
     .filter(([jenis]) => row1Keys.includes(jenis))
@@ -454,7 +442,6 @@ export default function RiwayatPesananZiswaf() {
         onScroll={handleScroll}
         className='w-full max-w-[1600px] mx-auto animate-in fade-in h-[calc(100vh-4rem)] overflow-y-auto relative bg-[#f8fafc] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400'>
         <div className='p-4 md:p-8 space-y-8'>
-          {/* HEADER UTAMA & BUTTONS */}
           <div className='shrink-0 flex flex-col md:flex-row md:items-start justify-between gap-6'>
             <div>
               <h1 className='text-2xl font-semibold text-slate-800 tracking-tight'>
@@ -495,7 +482,6 @@ export default function RiwayatPesananZiswaf() {
             </div>
           </div>
 
-          {/* KPI CARDS */}
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5'>
             <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 group hover:border-teal-300 hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden cursor-default'>
               <Receipt className='absolute -right-4 -bottom-4 w-24 h-24 text-slate-50 group-hover:scale-110 transition-transform duration-700 pointer-events-none' />
@@ -600,10 +586,8 @@ export default function RiwayatPesananZiswaf() {
             </div>
           </div>
 
-          {/* METRIK CARD KATEGORI ZISWAF (MULTI-ROW LAYOUT) */}
           {Object.keys(kategoriStats).length > 0 && (
             <div className='flex flex-col gap-5'>
-              {/* Baris 1: Zakat Mal & Zakat Fitrah */}
               {row1Entries.length > 0 && (
                 <div className='flex flex-col xl:flex-row gap-5 w-full'>
                   {row1Entries.map(([jenis, tipeData]) => (
@@ -616,7 +600,6 @@ export default function RiwayatPesananZiswaf() {
                 </div>
               )}
 
-              {/* Baris 2: Sisanya (Infaq, Wakaf, Fidyah, dll) */}
               {row2Entries.length > 0 && (
                 <div className='flex flex-col xl:flex-row flex-wrap gap-5 w-full'>
                   {row2Entries.map(([jenis, tipeData]) => (
@@ -631,7 +614,6 @@ export default function RiwayatPesananZiswaf() {
             </div>
           )}
 
-          {/* COMPOSED CHART ANALITIK */}
           <div className='bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-[400px] flex flex-col mb-4'>
             <div className='flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4'>
               <h3 className='text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center shrink-0'>
@@ -775,7 +757,6 @@ export default function RiwayatPesananZiswaf() {
             )}
           </div>
 
-          {/* STICKY WRAPPER FILTER */}
           <div className='sticky top-0 z-40 -mx-4 px-4 md:-mx-8 md:px-8 py-4 bg-[#f8fafc]/90 backdrop-blur-xl'>
             <div className='bg-white p-3 md:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col xl:flex-row gap-3 md:gap-4 justify-between items-center transition-all w-full'>
               <div className='flex gap-2 overflow-x-auto w-full xl:flex-1 min-w-0 pb-1 xl:pb-0 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300/40 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400/60'>
@@ -826,7 +807,6 @@ export default function RiwayatPesananZiswaf() {
             </div>
           </div>
 
-          {/* TABEL DATA */}
           <div className='bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden'>
             <div className='overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
               <table className='w-full text-left border-collapse min-w-[800px]'>
@@ -931,7 +911,6 @@ export default function RiwayatPesananZiswaf() {
         </div>
       </div>
 
-      {/* TOMBOL SCROLL TO TOP */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button

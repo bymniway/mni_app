@@ -101,9 +101,6 @@ const HighlightText = ({
   );
 };
 
-// ==========================================
-// MAIN COMPONENT
-// ==========================================
 export default function MediaPage() {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -1023,9 +1020,6 @@ export default function MediaPage() {
         )}
       </motion.div>
 
-      {/* ==================================================== */}
-      {/* BOTTOM STICKY PILL (LEBIH GEMUK & DADU PRESISI) */}
-      {/* ==================================================== */}
       <motion.div
         className={`fixed bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-[70] w-[94%] sm:w-max max-w-full bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.5)] rounded-full p-2 md:p-2.5 flex items-center transition-all duration-500 pointer-events-auto ${isScrolled ? 'translate-y-0 opacity-100' : 'translate-y-28 opacity-0 pointer-events-none'}`}>
         <div

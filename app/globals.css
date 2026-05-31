@@ -38,3 +38,12 @@ font[face='Traditional Arabic'] {
   font-family:
     'Traditional Arabic', 'Amiri', 'Noto Naskh Arabic', serif !important;
 }
+
+* {
+  -ms-overflow-style: none; /* Untuk Internet Explorer dan Edge */
+  scrollbar-width: none; /* Untuk Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Untuk Chrome, Safari, dan Opera */
+}

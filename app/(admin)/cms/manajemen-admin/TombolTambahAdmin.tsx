@@ -20,7 +20,7 @@ export default function TombolTambahAdmin() {
     if (result.error) {
       setErrorMsg(result.error);
     } else {
-      setIsOpen(false); // Tutup modal jika sukses
+      setIsOpen(false);
     }
     setLoading(false);
   };
@@ -34,7 +34,6 @@ export default function TombolTambahAdmin() {
         <span>Tambah Admin</span>
       </button>
 
-      {/* Modal Overlay */}
       {isOpen && (
         <div className='fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-center items-center p-4'>
           <div className='bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200'>

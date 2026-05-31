@@ -45,9 +45,6 @@ const cleanUrl = (url: string) => {
   return url.replace(/["']/g, '').trim();
 };
 
-// ==========================================
-// 1. KOMPONEN: IMAGE CAROUSEL (IG STYLE)
-// ==========================================
 const ImageCarousel = ({ rawUrlData }: { rawUrlData: string }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [images, setImages] = useState<string[]>([]);
@@ -228,9 +225,6 @@ const ImageCarousel = ({ rawUrlData }: { rawUrlData: string }) => {
   );
 };
 
-// ==========================================
-// 2. KOMPONEN: URUNAN & COUNTDOWN
-// ==========================================
 const UrunanProgress = ({
   hewanId,
   hewanTipe,
@@ -390,9 +384,6 @@ const SlaughterCountdown = ({ statusPesanan }: { statusPesanan: string }) => {
   );
 };
 
-// ==========================================
-// 3. KOMPONEN: SMART VERTICAL TRACKER
-// ==========================================
 const SmartVerticalTracker = ({ pesanan }: { pesanan: any }) => {
   const status = pesanan.status_pesanan;
   const logs = pesanan.logs || [];
@@ -813,7 +804,6 @@ function StatusContent() {
                     </div>
                   )}
 
-                  {/* DIGANTI MENJADI COMPONENT BARU: IMAGE CAROUSEL FULLSCREEN */}
                   {(pesanan.status_pesanan === 'Selesai' ||
                     pesanan.status_pesanan === 'Terkirim') &&
                     pesanan.bukti_sembelih_url && (

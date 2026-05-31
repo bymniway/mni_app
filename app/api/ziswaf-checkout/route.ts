@@ -77,14 +77,11 @@ export async function POST(request: Request) {
         kategori: kategori,
         nominal: parseFloat(nominal),
         rincian_kalkulasi: rincian || null,
-        bukti_transfer_url: signedUrl, // 👈 Disisipkan di sini
+        bukti_transfer_url: signedUrl,
         status_pesanan: 'Menunggu',
       },
     ]);
 
-    // ==========================================
-    // LOGIKA PENGIRIMAN EMAIL (TIDAK ADA PERUBAHAN)
-    // ==========================================
     if (email) {
       const transporter = nodemailer.createTransport({
         service: 'gmail',

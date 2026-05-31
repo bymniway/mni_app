@@ -48,13 +48,10 @@ import {
   Subscript,
   Superscript,
   FileCode2,
-  FileText, // <-- ICON BARU UNTUK BACKGROUND
+  FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ==========================================
-// KOMPONEN: MODERN SCROLLABLE RICH TEXT EDITOR
-// ==========================================
 const RichTextEditor = ({
   value,
   onChange,
@@ -102,24 +99,18 @@ const RichTextEditor = ({
   };
 
   const checkFormatting = () => {
-    // 1. Ambil nama font dari browser
     let rawFontName = document.queryCommandValue('fontName') || '';
-    // 2. Bersihkan dari tanda kutip tunggal maupun ganda
     let cleanFontName = rawFontName.replace(/['"]/g, '');
 
-    // RADAR UKURAN FONT DI POSISI KURSOR
     let detectedFontSize = '';
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       let node = sel.anchorNode;
-      // Jika kursor tepat di atas teks murni (text node), ambil elemen pembungkusnya
       if (node && node.nodeType === 3) {
         node = node.parentNode;
       }
       if (node && node instanceof Element) {
         const computedStyle = window.getComputedStyle(node);
-        // Hapus tulisan "px" agar cocok dengan angka di dropdown (misal: "16px" jadi "16")
-        // Gunakan Math.round agar pembacaan pixel stabil (tidak muncul 16.5 dll)
         detectedFontSize = Math.round(
           parseFloat(computedStyle.fontSize),
         ).toString();
@@ -262,9 +253,7 @@ const RichTextEditor = ({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      // Mengarahkan berkas ke Cloudinary khusus untuk optimasi aset antarmuka
       formData.append('provider', 'CLOUDINARY');
-      // Mengelompokkan gambar ke folder khusus agar rapi di dasbor Cloudinary
       formData.append('folder', 'media-assets');
 
       const res = await fetch('/api/upload', {
@@ -382,7 +371,6 @@ const RichTextEditor = ({
 
   return (
     <div className='relative w-full flex flex-col items-center'>
-      {/* SCROLLABLE TOOLBAR MOBILE-FRIENDLY */}
       <div className='sticky top-6 z-50 w-full max-w-5xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl p-2.5 mb-8 transition-all duration-300'>
         <div className='flex overflow-x-auto hide-scrollbar gap-1.5 md:gap-2 pb-1 items-center w-full'>
           <div className='flex bg-slate-50 border border-slate-200 rounded-lg p-0.5 shrink-0'>
@@ -857,9 +845,6 @@ const RichTextEditor = ({
   );
 };
 
-// ==========================================
-// DASHBOARD ADMIN CMS MEDIA
-// ==========================================
 export default function AdminMediaCMS() {
   const [articles, setArticles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -920,9 +905,7 @@ export default function AdminMediaCMS() {
     try {
       const uploadData = new FormData();
       uploadData.append('file', file);
-      // Mengarahkan berkas ke Cloudinary khusus untuk optimasi aset antarmuka
       uploadData.append('provider', 'CLOUDINARY');
-      // Mengelompokkan gambar ke folder khusus agar rapi di dasbor Cloudinary
       uploadData.append('folder', 'media-assets');
 
       const res = await fetch('/api/upload', {
@@ -972,7 +955,6 @@ export default function AdminMediaCMS() {
     });
   };
 
-  // FUNGSI BARU: MULTI-SELECT & BULK DELETE
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
@@ -1005,9 +987,6 @@ export default function AdminMediaCMS() {
 
   return (
     <div className='p-4 md:p-8 bg-[#f8fafc] min-h-screen pb-24 relative'>
-      {/* ==========================================
-          INJECT ANIMASI JIGGLE ELEGANT & TYPOGRAPHY
-          ========================================== */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -1045,9 +1024,6 @@ export default function AdminMediaCMS() {
         }}
       />
 
-      {/* ==========================================
-          FLOATING ACTION BAR (PILL) ALA MACOS
-          ========================================== */}
       <AnimatePresence>
         {isSelectionMode && (
           <motion.div
@@ -1143,9 +1119,6 @@ export default function AdminMediaCMS() {
                     ${isSelected ? 'border-teal-500 ring-2 ring-teal-500/30 scale-[0.98]' : 'border border-slate-100'}
                   `}>
                   <div className='aspect-video relative bg-slate-100 overflow-hidden shrink-0'>
-                    {/* ==========================================
-                        DOT INDIKATOR ELEGANT
-                        ========================================== */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1183,7 +1156,6 @@ export default function AdminMediaCMS() {
                       </div>
                     )}
 
-                    {/* Badge Tipe di kiri bawah agar tak numpuk dgn dot */}
                     <div className='absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-[10px] font-bold text-slate-700 uppercase tracking-wider shadow-sm'>
                       {item.tipe}
                     </div>
@@ -1196,7 +1168,6 @@ export default function AdminMediaCMS() {
                   </div>
 
                   <div className='p-5 flex flex-col flex-1 relative overflow-hidden'>
-                    {/* IKON BACKGROUND MENGEMBANG DI KANAN BAWAH */}
                     <div className='absolute -right-6 -bottom-6 opacity-[0.03] pointer-events-none group-hover:scale-125 transition-transform duration-700 z-0'>
                       <FileText className='w-40 h-40' />
                     </div>
@@ -1215,7 +1186,6 @@ export default function AdminMediaCMS() {
                         </span>
 
                         <div className='flex gap-2'>
-                          {/* Sembunyikan tombol saat Mode Seleksi */}
                           {!isSelectionMode && (
                             <>
                               <button
@@ -1255,7 +1225,6 @@ export default function AdminMediaCMS() {
         )}
       </div>
 
-      {/* FULLSCREEN WRITING CANVAS (Tetap Utuh Tidak Dirubah) */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -1263,7 +1232,6 @@ export default function AdminMediaCMS() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className='fixed inset-0 z-[100] bg-slate-50/95 backdrop-blur-md flex flex-col overflow-y-auto'>
-            {/* Header Canvas Murni (Sticky Top 0) */}
             <div className='sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-4 md:px-6 py-4 flex justify-between items-center shadow-sm'>
               <div className='flex items-center gap-4'>
                 <button
@@ -1295,9 +1263,7 @@ export default function AdminMediaCMS() {
               </div>
             </div>
 
-            {/* Area Setting Meta Data */}
             <div className='w-full max-w-5xl mx-auto px-4 py-8 space-y-6'>
-              {/* Judul Proporsional */}
               <input
                 type='text'
                 value={formData.judul}
@@ -1359,9 +1325,7 @@ export default function AdminMediaCMS() {
                 </div>
               </div>
 
-              {/* Cover Image Set dengan Upload AVIF API MNI */}
               <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-6'>
-                {/* Area Klik/Upload */}
                 <div
                   onClick={() => coverInputRef.current?.click()}
                   className='relative group w-full md:w-56 h-32 rounded-xl bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-teal-400 transition-colors'>
@@ -1385,7 +1349,6 @@ export default function AdminMediaCMS() {
                       </span>
                     </div>
                   )}
-                  {/* Hover Overlay */}
                   {formData.cover_url && !isUploadingCover && (
                     <div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
                       <Edit3 className='w-6 h-6 text-white' />
@@ -1400,7 +1363,6 @@ export default function AdminMediaCMS() {
                   className='hidden'
                 />
 
-                {/* URL Manual */}
                 <div className='flex-1 w-full'>
                   <label className='text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2'>
                     URL Foto Sampul (Otomatis/Manual)
@@ -1422,7 +1384,6 @@ export default function AdminMediaCMS() {
               </div>
             </div>
 
-            {/* Rich Text Editor Bawah */}
             <div className='w-full flex-1 flex flex-col items-center px-4 pb-20'>
               <RichTextEditor
                 showSource={showSource}
@@ -1430,7 +1391,6 @@ export default function AdminMediaCMS() {
                 onChange={(val) => setForm({ ...formData, konten: val })}
               />
 
-              {/* Toggle Publish Elegan di bawah */}
               <div className='mt-8 flex items-center gap-3'>
                 <input
                   type='checkbox'

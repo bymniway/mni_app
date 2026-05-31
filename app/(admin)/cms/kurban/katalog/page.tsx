@@ -30,14 +30,11 @@ export default function KelolaHewanKurban() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // State untuk Tab (Katalog Aktif vs Tong Sampah)
   const [activeTab, setActiveTab] = useState<'katalog' | 'sampah'>('katalog');
 
-  // STATE BARU: Multi-Select
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const isSelectionMode = selectedIds.length > 0;
 
-  // Pengaturan Pembayaran Kurban
   const [nomorWaPanitia, setNomorWaPanitia] = useState('');
   const [rekeningKurban, setRekeningKurban] = useState('');
   const [qrisKurbanUrl, setQrisKurbanUrl] = useState('');
@@ -112,7 +109,6 @@ export default function KelolaHewanKurban() {
     fetchData();
   }, []);
 
-  // Kosongkan seleksi setiap kali pindah tab
   useEffect(() => {
     setSelectedIds([]);
   }, [activeTab]);
@@ -123,9 +119,7 @@ export default function KelolaHewanKurban() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-    // Menembak langsung ke Alibaba Cloud OSS Jakarta
     formData.append('provider', 'ALIBABA');
-    // Mengelompokkan gambar ke dalam folder khusus agar rapi di dasbor Alibaba
     formData.append('folder', 'kurban-katalog-assets');
     try {
       const res = await fetch('/api/upload', {
@@ -147,9 +141,7 @@ export default function KelolaHewanKurban() {
     setIsUploadingQris(true);
     const formData = new FormData();
     formData.append('file', file);
-    // Menembak langsung ke Alibaba Cloud OSS Jakarta
     formData.append('provider', 'ALIBABA');
-    // Mengelompokkan gambar ke dalam folder khusus agar rapi di dasbor Alibaba
     formData.append('folder', 'kurban-katalog-assets');
     try {
       const res = await fetch('/api/upload', {
@@ -321,9 +313,6 @@ export default function KelolaHewanKurban() {
 
   return (
     <div className='space-y-6 relative'>
-      {/* ==========================================
-          INJECT ANIMASI JIGGLE ELEGANT
-          ========================================== */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -345,9 +334,6 @@ export default function KelolaHewanKurban() {
         }}
       />
 
-      {/* ==========================================
-          PILL ACTION BAR ALA MACOS (GLASSMORPHISM)
-          ========================================== */}
       <AnimatePresence>
         {isSelectionMode && (
           <motion.div
@@ -412,7 +398,6 @@ export default function KelolaHewanKurban() {
         )}
       </AnimatePresence>
 
-      {/* Header Panel */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -451,7 +436,6 @@ export default function KelolaHewanKurban() {
         </div>
       </motion.div>
 
-      {/* PANEL PENGATURAN PEMBAYARAN KURBAN */}
       {activeTab === 'katalog' && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -538,7 +522,6 @@ export default function KelolaHewanKurban() {
         </motion.div>
       )}
 
-      {/* Grid Katalog */}
       {isLoading ? (
         <div className='flex justify-center py-20'>
           <Loader2 className='w-10 h-10 animate-spin text-mni-primary' />
@@ -589,9 +572,6 @@ export default function KelolaHewanKurban() {
                 ${isSelectionMode ? 'animate-subtle-jiggle cursor-pointer' : 'hover:shadow-xl hover:border-gray-200'}
                 ${!isTersedia || activeTab === 'sampah' ? 'grayscale-[40%]' : ''}
                 ${isSelected ? 'border-teal-500 ring-2 ring-teal-500/30 shadow-md scale-[0.98]' : 'border-gray-100'}`}>
-                {/* ==========================================
-                    DOT INDIKATOR ELEGANT (GANTI CHECKBOX)
-                    ========================================== */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -618,7 +598,6 @@ export default function KelolaHewanKurban() {
                   )}
                 </button>
 
-                {/* Badges Status & Sampah (Desain Premium) */}
                 <div className='absolute top-4 right-4 z-10 flex flex-col gap-2 items-end'>
                   {activeTab === 'sampah' ? (
                     <span className='px-3 py-1.5 rounded-full text-[10px] uppercase font-bold shadow-md backdrop-blur-md border bg-zinc-900/90 text-white border-zinc-700 flex items-center'>
@@ -649,7 +628,6 @@ export default function KelolaHewanKurban() {
                   )}
                 </div>
 
-                {/* Area Gambar */}
                 <div className='h-56 w-full bg-gray-50 flex items-center justify-center relative overflow-hidden shrink-0'>
                   {item.gambar_url ? (
                     <img
@@ -667,9 +645,7 @@ export default function KelolaHewanKurban() {
                   </div>
                 </div>
 
-                {/* Detail & Tombol Aksi (Warna Minimalis & Ikon Kado) */}
                 <div className='p-6 flex flex-col flex-1 relative bg-white overflow-hidden'>
-                  {/* IKON KADO BACKGROUND MENGEMBANG */}
                   <div className='absolute -right-6 -bottom-6 opacity-[0.03] pointer-events-none group-hover:scale-125 transition-transform duration-700 z-0'>
                     <Gift className='w-40 h-40' />
                   </div>
@@ -743,7 +719,6 @@ export default function KelolaHewanKurban() {
         </motion.div>
       )}
 
-      {/* MODAL FORM TETAP SAMA */}
       <AnimatePresence>
         {isModalOpen && (
           <div className='fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto'>
@@ -799,9 +774,7 @@ export default function KelolaHewanKurban() {
                   </div>
                 </div>
 
-                {/* Form Input Utama */}
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
-                  {/* Form Input Utama */}
                   <div className='grid grid-cols-1 md:grid-cols-3 gap-5 md:col-span-2'>
                     <div>
                       <label className='block text-sm font-semibold mb-1.5 text-gray-700'>

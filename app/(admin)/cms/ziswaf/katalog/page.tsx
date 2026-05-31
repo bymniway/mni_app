@@ -66,7 +66,6 @@ export default function PengaturanZiswafPage() {
     qris_ziswaf_url: '',
   });
 
-  // STATE WAKAF (Disimpan sebagai JSON Array)
   const [wakafList, setWakafList] = useState<any[]>([]);
 
   const formatRpString = (num: any) => {
@@ -102,7 +101,6 @@ export default function PengaturanZiswafPage() {
             );
         }
 
-        // Ambil Data dari tabel pengaturan_web (Rekening, QRIS, & JSON WAKAF)
         const { data: dataWeb } = await supabase
           .from('pengaturan_web')
           .select('*');
@@ -113,7 +111,6 @@ export default function PengaturanZiswafPage() {
             dataWeb.find((s) => s.kunci === 'qris_ziswaf_url')?.nilai || '';
           setPembayaran({ rekening_ziswaf: rek, qris_ziswaf_url: qris });
 
-          // Parsing data Wakaf dari string JSON
           const wakafString = dataWeb.find(
             (s) => s.kunci === 'wakaf_programs_data',
           )?.nilai;
@@ -151,7 +148,6 @@ export default function PengaturanZiswafPage() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('provider', 'ALIBABA');
-    // Mengelompokkan gambar ke dalam folder khusus agar rapi di dasbor Alibaba
     formData.append('folder', 'ziswaf-katalog-assets');
 
     try {
@@ -178,7 +174,6 @@ export default function PengaturanZiswafPage() {
     }
   };
 
-  // FUNGSI WAKAF EDITOR LOKAL
   const updateWakafField = (id: number, field: string, value: string) => {
     setWakafList((prev) =>
       prev.map((w) => (w.id === id ? { ...w, [field]: value } : w)),
@@ -206,27 +201,22 @@ export default function PengaturanZiswafPage() {
     setWakafList(wakafList.filter((w) => w.id !== id));
   };
 
-  // FUNGSI SIMPAN TOTAL KE SUPABASE
   const handleSaveSemua = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      // 1. Save Harga ke tabel ziswaf
       const dataHarga: any = { updated_at: new Date().toISOString() };
       Object.keys(form).forEach((k) => (dataHarga[k] = parseNum(form[k])));
       await supabase.from('ziswaf').update(dataHarga).eq('id', 1);
 
-      // 2. Bersihkan tag isNew dari array wakaf sebelum disimpan
       const cleanWakafList = wakafList.map((w) => {
         const cleanW = { ...w };
         delete cleanW.isNew;
-        // pastikan format angkanya benar
         cleanW.target = parseNum(String(cleanW.target));
         cleanW.terkumpul = parseNum(String(cleanW.terkumpul));
         return cleanW;
       });
 
-      // 3. Save Rekening, QRIS, & JSON Wakaf ke tabel pengaturan_web
       await supabase.from('pengaturan_web').upsert(
         [
           { kunci: 'rekening_ziswaf', nilai: pembayaran.rekening_ziswaf },
@@ -239,7 +229,6 @@ export default function PengaturanZiswafPage() {
         { onConflict: 'kunci' },
       );
 
-      // Hilangkan status isNew di UI
       setWakafList(cleanWakafList);
 
       alert('Semua pengaturan ZISWAF berhasil diperbarui!');
@@ -302,7 +291,6 @@ export default function PengaturanZiswafPage() {
         className='space-y-6'>
         {activeTab === 'HARGA' && (
           <div className='space-y-6 animate-in fade-in'>
-            {/* Zakat Fitrah & Fidyah */}
             <div className='bg-white border border-slate-200 rounded-[1.5rem] p-6 shadow-sm relative overflow-hidden'>
               <Heart className='absolute -right-4 -bottom-4 w-32 h-32 text-slate-50 pointer-events-none' />
               <h2 className='text-lg font-bold text-teal-800 mb-6 flex items-center relative z-10'>
@@ -642,7 +630,6 @@ export default function PengaturanZiswafPage() {
           </div>
         )}
       </form>
-      {/* Floating Action Button */}
       <div className='fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200 flex justify-center z-50'>
         <button
           onClick={handleSaveSemua}

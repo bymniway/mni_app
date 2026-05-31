@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import JadwalKajian from '@/components/public/JadwalKajian';
 
-export const revalidate = 0; // Memastikan data selalu segar saat direfresh
+export const revalidate = 0;
 
 export default async function KajianPage() {
   // Ambil pengaturan dari Supabase

@@ -65,7 +65,6 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
         }}
       />
 
-      {/* Toolbar Aksi Massal */}
       <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm gap-4 sm:gap-0'>
         <div className='text-sm font-medium text-zinc-600'>
           {isSelectMode ? (
@@ -98,7 +97,6 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
         </div>
       </div>
 
-      {/* Grid Kartu Admin */}
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5'>
         {admins.map((admin) => {
           const isSuperAdmin = admin.email === EMAIL_KEBAL;
@@ -115,13 +113,11 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
                 ${admin.is_root ? 'bg-zinc-900 border-zinc-800 text-white shadow-xl shadow-zinc-900/10' : 'bg-white border-zinc-200 text-zinc-900 hover:border-zinc-300'}
                 ${isSelected ? 'ring-2 ring-zinc-900 border-zinc-900' : !isSelectMode && 'hover:shadow-lg hover:shadow-zinc-200/50 hover:-translate-y-1'}
               `}>
-              {/* Ikon Background */}
               <div
                 className={`absolute -right-8 -bottom-8 opacity-[0.04] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 pointer-events-none ${admin.is_root ? 'text-white' : 'text-zinc-900'}`}>
                 <Shield className='w-48 h-48' />
               </div>
 
-              {/* Checkbox Overlay (Mode Select) */}
               {isSelectMode && !isSuperAdmin && (
                 <div className='absolute top-5 left-5 z-20 animate-in zoom-in duration-200'>
                   <div
@@ -133,7 +129,6 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
                 </div>
               )}
 
-              {/* Header Kartu */}
               <div
                 className={`relative z-10 flex justify-between items-start mb-6 transition-all ${isSelectMode && !isSuperAdmin ? 'pl-8' : ''}`}>
                 <div className='pr-2'>
@@ -158,7 +153,6 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
                 )}
               </div>
 
-              {/* Badges Status & Role */}
               <div className='relative z-10 flex flex-wrap gap-2 mb-6'>
                 <span
                   className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide border ${admin.is_root ? 'bg-white text-zinc-900 border-white' : 'bg-zinc-100 text-zinc-700 border-zinc-200'}`}>
@@ -178,7 +172,6 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
                 )}
               </div>
 
-              {/* Akses Halaman (Marquee Scrollable) */}
               <div className='relative z-10'>
                 <div
                   className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${admin.is_root ? 'text-zinc-500' : 'text-zinc-400'}`}>
@@ -192,7 +185,6 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
                   <div className='marquee-container overflow-x-auto no-scrollbar pb-2 cursor-grab active:cursor-grabbing'>
                     {admin.akses_halaman?.length > 0 ? (
                       <div className='marquee-content'>
-                        {/* Duplicate array 2x for seamless marquee loop */}
                         {[...admin.akses_halaman, ...admin.akses_halaman].map(
                           (path: string, i: number) => (
                             <span

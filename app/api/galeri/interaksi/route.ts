@@ -11,7 +11,6 @@ export async function GET(request: Request) {
 
   const supabase = getServiceSupabase();
 
-  // Ambil Komentar (Batasi 50 terakhir agar tidak berat saat load)
   const { data: comments } = await supabase
     .from('galeri_komentar')
     .select('id, nama, teks, created_at')
@@ -19,14 +18,12 @@ export async function GET(request: Request) {
     .order('created_at', { ascending: false })
     .limit(50);
 
-  // Hitung Total Likes
   const { count: likesCount } = await supabase
     .from('galeri_likes')
     .select('*', { count: 'exact', head: true })
     .eq('galeri_id', galeriId);
 
   return NextResponse.json({
-    // Balik urutan array agar komentar terlama di atas, terbaru di bawah
     comments: comments ? comments.reverse() : [],
     likes: likesCount || 0,
   });
@@ -42,7 +39,6 @@ export async function POST(request: Request) {
         .from('galeri_likes')
         .insert([{ galeri_id: data.galeriId, user_id: data.userId }]);
 
-      // Jika error karena sudah pernah like (Unique Violation) -> Lakukan Unlike
       if (error && error.code === '23505') {
         const { error: deleteError } = await supabase
           .from('galeri_likes')
@@ -53,7 +49,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'Unliked' });
       }
 
-      // Jika error karena sebab lain (misal tabel belum benar), lemparkan errornya!
       if (error) {
         console.error('Error insert like:', error);
         throw error;
@@ -63,7 +58,6 @@ export async function POST(request: Request) {
     }
 
     if (data.action === 'COMMENT') {
-      // 🛡️ ANTI-SPAM: Cek kapan terakhir kali device ini komentar
       const { data: lastComment } = await supabase
         .from('galeri_komentar')
         .select('created_at')
@@ -88,7 +82,6 @@ export async function POST(request: Request) {
         }
       }
 
-      // Simpan ke database jika lolos Anti-Spam
       const { error } = await supabase.from('galeri_komentar').insert([
         {
           galeri_id: data.galeriId,
