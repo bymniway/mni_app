@@ -32,11 +32,11 @@ export default function ProfilTentang({
 }: any) {
   // PERBAIKAN: Menambahkan tipe ': any' agar TypeScript tidak komplain
   const fadeInUp: any = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 40 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
+      transition: { duration: 0.7, ease: 'easeOut' },
     },
   };
 
@@ -62,13 +62,15 @@ export default function ProfilTentang({
     <div className='pb-24 overflow-hidden'>
       {/* 1. HERO & VISI MISI SECTION */}
       <motion.section
-        initial='hidden'
-        animate='visible'
-        variants={staggerContainer}
+        initial={{ y: 100, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 100, opacity: 0, scale: 0.9 }}
         className='max-w-6xl mx-auto px-4 md:px-10 pt-10'>
         {/* Banner Utama (Menggunakan editableDark) */}
         <motion.div
-          variants={fadeInUp}
+          initial='hidden'
+          animate='visible'
+          variants={staggerContainer}
           className='bg-mni-primary rounded-[2.5rem] p-8 md:p-16 text-center relative overflow-hidden shadow-2xl mb-10 group'>
           <div className='absolute -left-10 -top-10 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-1000'>
             <ShieldCheck className='w-[300px] h-[300px] text-white' />
@@ -78,11 +80,14 @@ export default function ProfilTentang({
           </div>
 
           <div className='relative z-10'>
-            <span className='inline-block px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-widest mb-6 border border-white/30 shadow-sm'>
+            <motion.span
+              variants={fadeInUp}
+              className='inline-block px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-widest mb-6 border border-white/30 shadow-sm'>
               Tentang Kami
-            </span>
+            </motion.span>
             <br />
             <motion.h1
+              variants={fadeInUp}
               contentEditable={isEditor}
               suppressContentEditableWarning
               onBlur={(e) =>

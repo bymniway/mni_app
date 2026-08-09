@@ -2,11 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Search, CreditCard } from 'lucide-react';
 
 export default function FloatingAction() {
   return (
-    <div className='fixed bottom-6 right-6 z-[70] flex flex-col items-end gap-6'>
+    <motion.div
+      initial={{ y: 100, opacity: 0, scale: 0.9 }}
+      animate={{ y: 0, opacity: 1, scale: 1 }}
+      exit={{ y: 100, opacity: 0, scale: 0.9 }}
+      className='fixed bottom-6 right-6 z-[70] flex flex-col items-end gap-6'>
       {/* Tombol Konfirmasi Pembayaran */}
       <Link
         href='/kurban/konfirmasi'
@@ -30,6 +35,6 @@ export default function FloatingAction() {
           Lacak Status
         </span>
       </Link>
-    </div>
+    </motion.div>
   );
 }

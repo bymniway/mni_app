@@ -44,12 +44,11 @@ import {
   Eye,
   User,
   Loader2,
-  TrendingDown,
 } from 'lucide-react';
 import CountdownHariBesar from '@/components/public/CountdownHariBesar';
 
 // ==========================================
-// UTILITY FUNCTIONS & STYLES
+// UTILITY FUNCTIONS & STYLES (Ditambahkan untuk Media)
 // ==========================================
 const formatWaktu = (dateStr: string) => {
   if (!dateStr) return '';
@@ -59,13 +58,6 @@ const formatWaktu = (dateStr: string) => {
     year: 'numeric',
   });
 };
-
-const formatRupiah = (angka: number) =>
-  new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-  }).format(angka);
 
 const getReadingTime = (text: string) => {
   if (!text) return 1;
@@ -158,7 +150,6 @@ export default function HeroBeranda({
   const [prayerData, setPrayerData] = useState<any>(null);
   const [calcMethod, setCalcMethod] = useState(20);
   const [isFetching, setIsFetching] = useState(true);
-  const [hijriAdj, setHijriAdj] = useState(0);
 
   // === STATE UNTUK MEDIA DINAMIS ===
   const [mediaList, setMediaList] = useState<any[]>([]);
@@ -166,13 +157,6 @@ export default function HeroBeranda({
   const [readMedia, setReadMedia] = useState<string[]>([]);
   const [featuredMediaIdx, setFeaturedMediaIdx] = useState(0);
 
-  // === STATE UNTUK RAMADHAN WIDGETS ===
-  const [ramadanSchedules, setRamadanSchedules] = useState<any[]>([]);
-  const [ramadanFinances, setRamadanFinances] = useState<any[]>([]);
-  const [activeRamadhanYear, setActiveRamadhanYear] = useState('');
-  const [isAfterMaghrib, setIsAfterMaghrib] = useState(false);
-
-  // FETCH PRAYER TIMES & SET MAGHRIB LOGIC
   useEffect(() => {
     const fetchPrayerTimes = async () => {
       setIsFetching(true);
@@ -183,27 +167,12 @@ export default function HeroBeranda({
           .eq('kunci', 'hijri_adjustment')
           .single();
         const adjValue = adjData?.nilai ? parseInt(adjData.nilai) : 0;
-        setHijriAdj(adjValue);
 
         const res = await fetch(
           `https://api.aladhan.com/v1/timingsByCity?city=Jakarta&country=Indonesia&method=${calcMethod}&adj=${adjValue}`,
         );
         const result = await res.json();
         setPrayerData(result.data);
-
-        // Kalkulasi Maghrib untuk Widget Laporan Ramadhan
-        const maghribTime = result.data.timings.Maghrib;
-        const [hours, minutes] = maghribTime.split(':').map(Number);
-        const maghribDateObj = new Date();
-        maghribDateObj.setHours(hours, minutes, 0, 0);
-
-        const checkMaghrib = () => {
-          setIsAfterMaghrib(new Date() >= maghribDateObj);
-        };
-
-        checkMaghrib(); // Cek langsung
-        const interval = setInterval(checkMaghrib, 60000); // Cek setiap menit
-        return () => clearInterval(interval);
       } catch (error) {
       } finally {
         setIsFetching(false);
@@ -211,119 +180,6 @@ export default function HeroBeranda({
     };
     fetchPrayerTimes();
   }, [calcMethod]);
-
-  // KAKULASI TANGGAL HIJRIYAH LIVE UNTUK HEADER WIDGET
-  const currentHijriText = useMemo(() => {
-    const now = new Date();
-    if (isAfterMaghrib) now.setDate(now.getDate() + 1); // Ganti hari hijriyah saat maghrib
-    now.setTime(now.getTime() + hijriAdj * 86400000);
-    const rawHijri = new Intl.DateTimeFormat('id-ID-u-ca-islamic', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(now);
-    return rawHijri.replace(/ AH| H/gi, '') + ' H';
-  }, [isAfterMaghrib, hijriAdj]);
-
-  // FETCH RAMADHAN DATA
-  useEffect(() => {
-    const fetchRamadhanData = async () => {
-      const { data: settings } = await supabase
-        .from('pengaturan_web')
-        .select('*');
-      const year =
-        settings?.find((s) => s.kunci === 'ramadhan_tahun_aktif')?.nilai ||
-        '1447';
-      setActiveRamadhanYear(year);
-
-      const { data: schedules } = await supabase
-        .from('ramadan_schedules')
-        .select('*')
-        .eq('tahun_hijriyah', year)
-        .order('tanggal', { ascending: true });
-      if (schedules) setRamadanSchedules(schedules);
-
-      const { data: finances } = await supabase
-        .from('ramadan_finances')
-        .select('*')
-        .eq('tahun_hijriyah', year)
-        .order('tanggal', { ascending: true });
-      if (finances) setRamadanFinances(finances);
-    };
-    fetchRamadhanData();
-  }, []);
-
-  // LOGIKA AUTO-UPDATE RAMADHAN WIDGETS
-  // --- LOGIKA AUTO-CEKLIS (DISINKRONKAN DENGAN UI RAMADHAN) ---
-  const checkIsDone = (dateString: string, type: 'imam' | 'takjil') => {
-    const now = new Date();
-    const [year, month, day] = dateString.split('-').map(Number);
-    const scheduleDate = new Date(year, month - 1, day);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    if (scheduleDate < today) return true; // Kemarin = Selesai
-    if (scheduleDate > today) return false; // Besok = Belum
-
-    const currentHour = now.getHours();
-    if (type === 'imam') return currentHour >= 22; // Jam 10 Malam
-    if (type === 'takjil') return currentHour >= 18; // Maghrib
-    return false;
-  };
-
-  // LOGIKA AUTO-UPDATE RAMADHAN WIDGETS
-  // Sekarang widget mencari yang "Belum di-ceklis manual" DAN "Waktunya belum lewat batas"
-  const activeTarawih = useMemo(
-    () =>
-      ramadanSchedules.find(
-        (s) => !s.status_imam && !checkIsDone(s.tanggal, 'imam'),
-      ) || null,
-    [ramadanSchedules],
-  );
-
-  const takjilIndex = useMemo(
-    () =>
-      ramadanSchedules.findIndex(
-        (s) => !s.status_takjil && !checkIsDone(s.tanggal, 'takjil'),
-      ),
-    [ramadanSchedules],
-  );
-
-  const activeTakjilToday =
-    takjilIndex !== -1 ? ramadanSchedules[takjilIndex] : null;
-  const activeTakjilTomorrow =
-    takjilIndex !== -1 && takjilIndex + 1 < ramadanSchedules.length
-      ? ramadanSchedules[takjilIndex + 1]
-      : null;
-
-  const activeLaporan = useMemo(() => {
-    const targetDateObj = new Date();
-    if (isAfterMaghrib) {
-      targetDateObj.setDate(targetDateObj.getDate());
-    }
-    const year = targetDateObj.getFullYear();
-    const month = String(targetDateObj.getMonth() + 1).padStart(2, '0');
-    const day = String(targetDateObj.getDate()).padStart(2, '0');
-    const targetDateStr = `${year}-${month}-${day}`;
-
-    return ramadanFinances.find((f) => f.tanggal === targetDateStr) || null;
-  }, [ramadanFinances, isAfterMaghrib]);
-
-  // Kalkulasi Total Laporan (Hingga Hari Ini)
-  const [totalPemasukan, totalPengeluaran, sisaSaldo] = useMemo(() => {
-    if (!activeLaporan) return [0, 0, 0];
-    const financesUntilToday = ramadanFinances.filter(
-      (f) => f.tanggal <= activeLaporan.tanggal,
-    );
-    const inTotal = financesUntilToday.reduce(
-      (sum, f) => sum + Number(f.pemasukan || 0),
-      0,
-    );
-    const outTotal = financesUntilToday.reduce(
-      (sum, f) => sum + Number(f.pengeluaran || 0),
-      0,
-    );
-    return [inTotal, outTotal, inTotal - outTotal];
-  }, [ramadanFinances, activeLaporan]);
 
   // === FETCH DATA MEDIA ===
   useEffect(() => {
@@ -453,6 +309,7 @@ export default function HeroBeranda({
 
   useEffect(() => {
     const fetchRealMetrics = async () => {
+      // 1. Fetch data web settings
       const { data: settings } = await supabase
         .from('pengaturan_web')
         .select('*');
@@ -468,7 +325,9 @@ export default function HeroBeranda({
           hargaZiswaf.fitrah_beras = dataHarga.harga_beras_fitrah || 45000;
           hargaZiswaf.fidyah = dataHarga.harga_fidyah || 15000;
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error('Gagal menarik harga Master Control Ziswaf', err);
+      }
 
       let ziswafData = {
         mal: '0',
@@ -479,9 +338,11 @@ export default function HeroBeranda({
         fitrah_uang: '0',
         fidyah: 0,
       };
+
       if (settings) {
         const getVal = (k: string, def: string) =>
           settings.find((s) => s.kunci === k)?.nilai || def;
+
         ziswafData = {
           mal: getVal('ziswaf_stat_mal', '0'),
           wakaf: getVal('ziswaf_stat_wakaf', '0'),
@@ -504,6 +365,7 @@ export default function HeroBeranda({
         const { data: pesananData, error } = await supabase
           .from('pesanan')
           .select('*, hewan(jenis, tipe)');
+
         if (!error && pesananData) {
           const valid = pesananData.filter(
             (p) => p.status_pesanan?.toLowerCase() !== 'ditolak',
@@ -538,12 +400,15 @@ export default function HeroBeranda({
 
           kurbanData.sapi = sapiUtuhJasa + Math.floor(sapiUrunanShohibul / 7);
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error(err);
+      }
 
       try {
         const { data: ziswafRes, error: ziswafErr } = await supabase
           .from('transaksi_ziswaf')
           .select('kategori, nominal, status_pesanan');
+
         if (!ziswafErr && ziswafRes) {
           const diterimaZiswaf = ziswafRes.filter(
             (p) =>
@@ -551,6 +416,7 @@ export default function HeroBeranda({
               p.status_pesanan?.toLowerCase() === 'lunas' ||
               p.status_pesanan?.toLowerCase() === 'selesai',
           );
+
           let mal = 0,
             wakaf = 0,
             infaq = 0,
@@ -579,18 +445,25 @@ export default function HeroBeranda({
           if (wakaf > 0) ziswafData.wakaf = formatJt(wakaf);
           if (infaq > 0) ziswafData.infaq = formatJt(infaq);
           if (shadaqoh > 0) ziswafData.shadaqoh = formatJt(shadaqoh);
+
           if (fitrah > 0) {
             ziswafData.fitrah_uang = formatJt(fitrah);
             ziswafData.fitrah_jiwa = Math.floor(
               (fitrah / hargaZiswaf.fitrah_beras) * 3.5,
             );
           }
-          if (fidyah > 0)
+          if (fidyah > 0) {
             ziswafData.fidyah = Math.floor(fidyah / hargaZiswaf.fidyah);
+          }
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error(err);
+      }
 
-      setStats({ kurban: kurbanData, ziswaf: ziswafData });
+      setStats({
+        kurban: kurbanData,
+        ziswaf: ziswafData,
+      });
     };
     fetchRealMetrics();
   }, []);
@@ -617,9 +490,11 @@ export default function HeroBeranda({
     };
   }, [isAnimationPaused, isEditor]);
 
+  // 1. BEKUKAN INDEX SAAT EDIT: Jika mode edit, paksa index selalu 0 (diam di tempat)
   const safeActiveIdx = isEditor ? 0 : activeIdx;
   const safeFinanceIdx = isEditor ? 0 : financeIdx;
 
+  // 2. TEKS BERHENTI BERUBAH: Gunakan index yang sudah dibekukan
   const currentKurbanText =
     kurbanInfoTexts[safeActiveIdx % (kurbanInfoTexts?.length || 1)];
   const currentZiswafText =
@@ -633,23 +508,28 @@ export default function HeroBeranda({
 
   useEffect(() => {
     const fetchGaleri = async () => {
+      // Kita ambil dari 'pengaturan_web' lagi, tapi dengan filter kunci 'galeri_data'
       const { data, error } = await supabase
         .from('pengaturan_web')
         .select('nilai')
         .eq('kunci', 'galeri_data')
         .single();
+
       if (!error && data?.nilai) {
         try {
+          // Karena formatnya JSON String di database, wajib di-parse
           const parsedData = JSON.parse(data.nilai);
+          // Ambil 8 data terbaru saja agar marquee tidak terlalu berat
           setRealGaleri(
             Array.isArray(parsedData) ? parsedData.slice(0, 8) : [],
           );
-        } catch (e) {}
+        } catch (e) {
+          console.error('Gagal parse JSON galeri:', e);
+        }
       }
     };
     fetchGaleri();
   }, []);
-
   const dummyImages = useMemo(
     () =>
       [1, 2, 3, 4].map((id) => ({
@@ -675,14 +555,20 @@ export default function HeroBeranda({
   const direction = useRef(-1);
   const baseSpeed = useRef(1);
   const [isPaused, setIsPaused] = useState(false);
-
   useEffect(() => {
+    // Pengintai ini akan mengeksekusi teleportasi SETIAP SAAT posisi X berubah
     const unsubscribe = x.on('change', (latest) => {
       if (!contentRef.current) return;
       const halfWidth = contentRef.current.scrollWidth / 2;
-      if (latest <= -halfWidth) x.set(latest + halfWidth);
-      else if (latest > 0) x.set(latest - halfWidth);
+
+      // Teleportasi tak kasat mata
+      if (latest <= -halfWidth) {
+        x.set(latest + halfWidth);
+      } else if (latest > 0) {
+        x.set(latest - halfWidth);
+      }
     });
+
     return () => unsubscribe();
   }, [x]);
 
@@ -698,9 +584,11 @@ export default function HeroBeranda({
       lastScrollY = currentScrollY;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+
     const damping = setInterval(() => {
       if (baseSpeed.current > 1) baseSpeed.current -= 0.1;
     }, 50);
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearInterval(damping);
@@ -708,7 +596,8 @@ export default function HeroBeranda({
   }, []);
 
   useAnimationFrame((t, delta) => {
-    if (isPaused) return;
+    if (isPaused) return; // Berhenti kalau ditahan mouse
+    // Jalan ke kiri terus
     x.set(x.get() + direction.current * baseSpeed.current * (delta / 16));
   });
 
@@ -738,7 +627,7 @@ export default function HeroBeranda({
               }
               className={`${isEditor ? 'cursor-text hover:bg-amber-100 rounded px-2 outline-none focus:ring-2 focus:ring-amber-400 min-w-full block transition-colors' : ''}`}>
               {data?.info_dkm ||
-                "• Assalamu'alaikum. Shalat Idul Adha 1447 H akan diselenggarakan di Lapangan Utama. • Dibutuhkan segera tambahan relawan panitia Kurban."}
+                "• Assalamu'alaikum. Shalat Idul Adha 1447 H akan diselenggarakan di Lapangan Utama. • Dibutuhkan segera tambahan relawan panitia Kurban. • Saldo wakaf pembebasan lahan parkir masih kurang Rp 15.000.000,-."}
             </span>
           </div>
         </div>
@@ -816,6 +705,7 @@ export default function HeroBeranda({
             variants={fadeInUp}
             className='md:w-2/5 flex justify-center'>
             <div className='relative w-64 h-64 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl group flex items-center justify-center bg-gradient-to-tr from-green-400/20 to-white/10 backdrop-blur-sm'>
+              {/* JIKA GAMBAR SUDAH ADA */}
               {data?.gambar_url ? (
                 <>
                   <img
@@ -823,14 +713,17 @@ export default function HeroBeranda({
                     alt='Hero MNI'
                     className='w-full h-full object-cover'
                   />
+
+                  {/* Overlay Menu Editor saat kursor mendekat */}
                   {isEditor && (
                     <div className='absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 gap-3'>
                       <label className='text-gray-300 px-4 py-2 rounded-full text-sm font-normal cursor-pointer hover:bg-teal-600 hover:text-white transition-colors shadow-lg'>
-                        Ganti Gambar{' '}
+                        Ganti Gambar
                         <input
                           type='file'
                           accept='image/*'
                           className='hidden'
+                          // Kita kirim angka 0 untuk parameter ID sesuai permintaan fungsi induk
                           onChange={(e) => onImageUpload && onImageUpload(0, e)}
                         />
                       </label>
@@ -844,8 +737,11 @@ export default function HeroBeranda({
                   )}
                 </>
               ) : (
+                /* JIKA GAMBAR BELUM ADA (KOSONG) */
                 <>
                   <MapPin className='w-14 h-14 opacity-80 text-white' />
+
+                  {/* Overlay Upload Pertama Kali */}
                   {isEditor && (
                     <label className='absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10'>
                       <span className='text-gray-300 hover:text-white text-sm font-semibold'>
@@ -1136,6 +1032,7 @@ export default function HeroBeranda({
           </div>
         </motion.div>
 
+        {/* Fasilitas Masjid */}
         <motion.div
           variants={fadeInUp}
           className='bg-white border border-gray-100 shadow-sm p-6 rounded-3xl flex flex-col justify-center'>
@@ -1195,261 +1092,6 @@ export default function HeroBeranda({
       <div className='mt-16 md:mt-24'>
         <CountdownHariBesar isEditor={isEditor} />
       </div>
-
-      {/* ========================================== */}
-      {/* SEKSI WIDGET RAMADHAN (AUTO-UPDATE)        */}
-      {/* ========================================== */}
-      {(activeTarawih || activeTakjilToday || activeLaporan) && (
-        <motion.section
-          initial='hidden'
-          whileInView='visible'
-          viewport={{ once: true, margin: '-50px' }}
-          variants={staggerContainer}
-          className='max-w-7xl mx-auto px-4 md:px-10 mt-16 md:mt-24 relative'>
-          {/* HEADER BERTENGGER */}
-          <div className='bg-gradient-to-br-from-grey-to-white border border-gray-200 shadow-xl  rounded-[2rem] p-8 md:p-12 pb-24 md:pb-32 text-white relative overflow-hidden '>
-            <div className='absolute -right-20 -top-20 opacity-[0.08] pointer-events-none'>
-              <Moon className='w-[400px] h-[400px] text-emerald-400' />
-            </div>
-            <div className='relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6'>
-              <div>
-                <h2 className='text-emerald-800 text-2xl md:text-3xl font-bold flex items-center gap-3'>
-                  <span
-                    contentEditable={isEditor}
-                    suppressContentEditableWarning
-                    onBlur={(e) =>
-                      isEditor &&
-                      onTextChange(
-                        'ramadhan_widget_judul',
-                        e.currentTarget.textContent,
-                      )
-                    }
-                    className={editableClass}>
-                    {data?.ramadhan_widget_judul || 'Semarak Ramadhan'}
-                  </span>
-                </h2>
-                <p className='text-emerald-600/80 mt-2 text-sm md:text-base max-w-xl font-medium'>
-                  <span
-                    contentEditable={isEditor}
-                    suppressContentEditableWarning
-                    onBlur={(e) =>
-                      isEditor &&
-                      onTextChange(
-                        'ramadhan_widget_desc',
-                        e.currentTarget.textContent,
-                      )
-                    }
-                    className={editableClass}>
-                    {data?.ramadhan_widget_desc ||
-                      'Pantau jadwal petugas tarawih, mutashaddiq, dan laporan kas harian.'}
-                  </span>
-                </p>
-              </div>
-              <div className='bg-white/10 backdrop-blur-md border border-white/20 px-5 py-2.5 rounded-2xl flex items-center shadow-inner shrink-0'>
-                <Calendar className='w-5 h-5 mr-3 text-emerald-600' />
-                <span className='font-bold text-emerald-600 tracking-wide text-sm'>
-                  {currentHijriText}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-6 relative z-20 -mt-16 md:-mt-20 px-2 md:px-8'>
-            {/* WIDGET TARAWIH */}
-            {activeTarawih && (
-              <motion.div
-                variants={fadeInUp}
-                className='bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-3xl p-6 overflow-hidden shadow-lg relative group hover:-translate-y-1 transition-all duration-300 border border-emerald-600/50'>
-                <div className='absolute -right-8 -top-8 opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-white'>
-                  <Users className='w-40 h-40' />
-                </div>
-                <div className='relative z-10 flex flex-col h-full justify-between'>
-                  <div className='flex justify-between items-center mb-6'>
-                    <div className='w-10 h-10 bg-emerald-500/40 border border-emerald-400/40 rounded-xl flex items-center justify-center text-emerald-50'>
-                      <Users className='w-5 h-5' />
-                    </div>
-                    <span className='text-[10px] font-bold bg-white text-emerald-900 px-2.5 py-1 rounded-full'>
-                      Tarawih
-                    </span>
-                  </div>
-                  <div className='mb-4'>
-                    <div className='inline-block px-2.5 py-1 bg-emerald-900/50 border border-emerald-500/30 text-emerald-100 text-[10px] font-bold rounded-md mb-4'>
-                      {formatWaktu(activeTarawih.tanggal)} | {currentHijriText}
-                    </div>
-                    <div className='space-y-3'>
-                      <div>
-                        <p className='text-[10px] uppercase font-bold text-emerald-300  tracking-wider mb-0.5'>
-                          Imam Tarawih
-                        </p>
-                        <p className='text-lg font-bold text-white'>
-                          {activeTarawih.imam}
-                        </p>
-                      </div>
-                      {activeTarawih.penceramah && (
-                        <div>
-                          <p className='text-[10px] uppercase font-bold text-emerald-300  tracking-wider mb-0.5'>
-                            Penceramah
-                          </p>
-                          <p className='text-sm font-semibold text-emerald-50'>
-                            {activeTarawih.penceramah}
-                          </p>
-                        </div>
-                      )}
-                      <div>
-                        <p className='text-[10px] uppercase font-bold text-emerald-300  tracking-wider mb-0.5'>
-                          Bilal
-                        </p>
-                        <p className='text-sm font-semibold text-emerald-50'>
-                          {activeTarawih.bilal}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <CardWrapper
-                    href='/ramadhan'
-                    className='mt-2 flex items-center text-[10px] font-bold text-emerald-200 hover:text-white transition-colors w-max uppercase tracking-widest'>
-                    Lihat Jadwal Lengkap{' '}
-                    <ChevronRight className='w-3.5 h-3.5 ml-1' />
-                  </CardWrapper>
-                </div>
-              </motion.div>
-            )}
-
-            {/* WIDGET TAKJIL */}
-            {activeTakjilToday && (
-              <motion.div
-                variants={fadeInUp}
-                className='bg-gradient-to-br from-orange-600 to-orange-800 rounded-3xl p-6 overflow-hidden shadow-lg relative group hover:-translate-y-1 transition-all duration-300 border border-orange-500/50'>
-                <div className='absolute -right-8 -top-8 opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-white'>
-                  <Gift className='w-40 h-40' />
-                </div>
-                <div className='relative z-10 flex flex-col h-full justify-between'>
-                  <div className='flex justify-between items-center mb-6'>
-                    <div className='w-10 h-10 bg-orange-500/40 border border-orange-400/40 rounded-xl flex items-center justify-center text-orange-50'>
-                      <Gift className='w-5 h-5' />
-                    </div>
-                    <span className='text-[10px] font-bold bg-white text-orange-900 px-2.5 py-1 rounded-full'>
-                      Takjil Buka Puasa
-                    </span>
-                  </div>
-                  <div className='space-y-3 mb-4 flex-1'>
-                    <div className='bg-orange-900/40 border border-orange-500/30 p-3.5 rounded-2xl'>
-                      <div className='flex justify-between items-start mb-1.5'>
-                        <p className='text-[10px] text-orange-300 uppercase font-bold tracking-wider'>
-                          Hari Ini
-                        </p>
-                        <span className='text-[9px] text-orange-200 font-medium'>
-                          {formatWaktu(activeTakjilToday.tanggal)} |{' '}
-                          {currentHijriText}
-                        </span>
-                      </div>
-                      <p className='text-[15px] font-bold text-white line-clamp-2 leading-snug'>
-                        {activeTakjilToday.donatur_takjil || 'Hamba Allah'}
-                      </p>
-                    </div>
-                    <div className='bg-orange-900/40 border border-orange-500/30 p-3.5 rounded-2xl'>
-                      <p className='text-[10px] text-orange-300 uppercase font-bold tracking-wider mb-1'>
-                        Besok
-                      </p>
-                      <p className='text-sm font-bold text-orange-50 line-clamp-2 leading-snug'>
-                        {activeTakjilTomorrow
-                          ? activeTakjilTomorrow.donatur_takjil || 'Hamba Allah'
-                          : `Idul Fitri ${activeRamadhanYear} H`}
-                      </p>
-                    </div>
-                  </div>
-                  <CardWrapper
-                    href='/ramadhan?tab=takjil'
-                    className='mt-2 flex items-center text-[10px] font-bold text-orange-200 hover:text-white transition-colors w-max uppercase tracking-widest'>
-                    Daftar Mutashaddiq{' '}
-                    <ChevronRight className='w-3.5 h-3.5 ml-1' />
-                  </CardWrapper>
-                </div>
-              </motion.div>
-            )}
-
-            {/* WIDGET LAPORAN KAS RAMADHAN */}
-            {activeLaporan && (
-              <motion.div
-                variants={fadeInUp}
-                className='bg-slate-900 rounded-3xl p-6 overflow-hidden shadow-lg relative group hover:-translate-y-1 transition-all duration-300 border border-slate-800'>
-                <div className='absolute -right-8 -top-8 opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-white'>
-                  <Wallet className='w-40 h-40' />
-                </div>
-                <div className='relative z-10 flex flex-col h-full justify-between'>
-                  <div className='flex justify-between items-center mb-6'>
-                    <div className='w-10 h-10 bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center text-slate-300'>
-                      <Wallet className='w-5 h-5' />
-                    </div>
-                    <span className='text-[10px] font-bold bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full flex items-center'>
-                      <TrendingUp className='w-3 h-3 mr-1' /> Live
-                    </span>
-                  </div>
-                  <div className='mb-4 space-y-4'>
-                    <div className='flex justify-between items-end border-b border-slate-700/50 pb-3'>
-                      <div>
-                        <p className='text-[10px] text-emerald-400 uppercase font-bold tracking-widest mb-1'>
-                          Record K.A.R Hari Ini
-                        </p>
-                        <p className='text-[9px]  font-semibold text-slate-400'>
-                          {formatWaktu(activeLaporan.tanggal)} |{' '}
-                          {currentHijriText}
-                        </p>
-                      </div>
-                      <div className='text-right'>
-                        <p className='text-[10px] text-slate-500 mb-0.5'>
-                          In:{' '}
-                          <span className='text-emerald-400 font-bold ml-1'>
-                            {formatRupiah(activeLaporan.pemasukan)}
-                          </span>
-                        </p>
-                        <p className='text-[10px] text-slate-500'>
-                          Out:{' '}
-                          <span className='text-red-400 font-bold ml-1'>
-                            {formatRupiah(activeLaporan.pengeluaran)}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                    <div className='grid grid-cols-2 gap-3'>
-                      <div className='bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl'>
-                        <p className='text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1'>
-                          Total Pemasukan
-                        </p>
-                        <p className='text-sm font-bold text-emerald-400'>
-                          {formatRupiah(totalPemasukan)}
-                        </p>
-                      </div>
-                      <div className='bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl'>
-                        <p className='text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1'>
-                          Total Pengeluaran
-                        </p>
-                        <p className='text-sm font-bold text-red-400'>
-                          {formatRupiah(totalPengeluaran)}
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className='text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1'>
-                        Sisa Saldo Kas
-                      </p>
-                      <p className='text-2xl font-black text-white'>
-                        {formatRupiah(sisaSaldo)}
-                      </p>
-                    </div>
-                  </div>
-                  <CardWrapper
-                    href='/ramadhan?tab=laporan'
-                    className='mt-2 flex items-center text-[10px] font-bold text-slate-400 hover:text-white transition-colors w-max uppercase tracking-widest'>
-                    Rincian Keuangan{' '}
-                    <ChevronRight className='w-3.5 h-3.5 ml-1' />
-                  </CardWrapper>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </motion.section>
-      )}
 
       <motion.section
         initial='hidden'
@@ -1550,6 +1192,7 @@ export default function HeroBeranda({
                     Kurban 1447 H
                   </span>
                 </div>
+
                 <div className='my-3 h-[50px] flex items-center'>
                   <AnimatePresence mode='wait'>
                     {kurbanDataView === 0 ? (
@@ -1601,7 +1244,7 @@ export default function HeroBeranda({
                           </p>
                           <span className='text-3xl font-bold'>
                             {stats.kurban.total_transaksi}
-                          </span>
+                          </span>{' '}
                         </div>
                         <div className='text-right'>
                           <p className='text-[10px] font-bold text-green-300 uppercase tracking-wider mb-0.5'>
@@ -1618,6 +1261,7 @@ export default function HeroBeranda({
                     )}
                   </AnimatePresence>
                 </div>
+
                 <div
                   className={`border-t border-green-700/50 pt-2.5 mt-1 ${isEditor ? 'flex flex-col gap-2 h-[80px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden' : 'min-h-[2.5rem] flex items-start overflow-hidden'}`}>
                   {isEditor ? (
@@ -1674,6 +1318,7 @@ export default function HeroBeranda({
                     ZISWAF
                   </span>
                 </div>
+
                 <div className='my-3 h-[50px] flex items-center'>
                   <AnimatePresence mode='wait'>
                     {ziswafDataView === 0 && (
@@ -2055,7 +1700,7 @@ export default function HeroBeranda({
         </div>
       </motion.section>
 
-      {/* 7. MEDIA & INSPIRASI */}
+      {/* 7. MEDIA & INSPIRASI (DIHUBUNGKAN DENGAN LOGIKA FETCH MEDIA) */}
       <motion.section
         initial='hidden'
         whileInView='visible'
@@ -2088,6 +1733,7 @@ export default function HeroBeranda({
               </span>
             </p>
           </div>
+
           <Link
             href={'/media'}
             className='flex items-center text-mni-primary font-bold text-xs md:text-base hover:text-teal-700 transition-colors shrink-0 mb-1 md:mb-0'>
@@ -2096,6 +1742,7 @@ export default function HeroBeranda({
         </div>
 
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+          {/* BANNER UTAMA DINAMIS */}
           <motion.div
             variants={fadeInUp}
             className='lg:col-span-2 relative bg-gray-900 rounded-3xl overflow-hidden shadow-md group aspect-[16/9] lg:aspect-auto'>
@@ -2121,6 +1768,7 @@ export default function HeroBeranda({
                     />
                     <div className='absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent'></div>
                     <div className='absolute inset-0 p-6 md:p-10 flex flex-col justify-end relative z-10'>
+                      {/* PENANDA LENGKAP */}
                       <div className='flex flex-wrap items-center gap-1.5 md:gap-2 mb-3'>
                         <span className='bg-mni-primary text-white text-[10px] md:text-xs font-bold px-2.5 md:px-3 py-1 md:py-1.5 rounded-full uppercase tracking-wider'>
                           Pilihan Redaksi
@@ -2139,9 +1787,11 @@ export default function HeroBeranda({
                           {formatViews(currentFeaturedMedia.views)} Views
                         </span>
                       </div>
+
                       <h3 className='text-xl md:text-2xl font-bold text-white mb-3 leading-tight group-hover:text-green-300 transition-colors line-clamp-3 md:line-clamp-none'>
                         {currentFeaturedMedia.judul}
                       </h3>
+
                       <div className='flex flex-wrap items-center text-gray-300 text-xs md:text-sm font-medium gap-4 md:gap-6'>
                         <span className='flex items-center text-green-100 mr-3 md:mr-0'>
                           <User className='w-3 h-3 md:w-4 md:h-4 mr-1.5' />{' '}
@@ -2163,6 +1813,7 @@ export default function HeroBeranda({
             </AnimatePresence>
           </motion.div>
 
+          {/* LIST ARTIKEL TERBARU KANAN DINAMIS */}
           <motion.div
             variants={fadeInUp}
             className='flex flex-col gap-4'>
@@ -2269,7 +1920,7 @@ export default function HeroBeranda({
           <motion.div
             ref={contentRef}
             drag='x'
-            dragElastic={0}
+            dragElastic={0} // Bebaskan tarikan (tanpa karet perlawanan)
             style={{ x }}
             onDragStart={() => setIsPaused(true)}
             onDragEnd={() => setTimeout(() => setIsPaused(false), 2500)}
@@ -2277,10 +1928,13 @@ export default function HeroBeranda({
             onMouseLeave={() => setTimeout(() => setIsPaused(false), 2500)}
             className='flex w-max gap-4'>
             {infiniteGaleri.map((item, idx) => {
+              // LOGIKA: Ambil foto pertama dari array gambar_urls
+              // Jika kosong, baru lari ke gambar_url (string)
               const coverImage =
                 item.gambar_urls && item.gambar_urls.length > 0
                   ? item.gambar_urls[0]
                   : item.gambar_url;
+
               return (
                 <div
                   key={idx}

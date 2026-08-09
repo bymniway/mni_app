@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   Mail,
-  Lock, // Tambahkan impor Lock
+  Lock,
+  Gem,
 } from 'lucide-react';
 
 // MENERIMA PROP isCollapsed DARI LAYOUT
@@ -296,6 +297,7 @@ export default function AdminSidebar({
           {/* Separator */}
           {/* FUNGSI RENDER MENU SATUAN (Single Link) */}
           {[
+            { path: '/cms/ramadhan', label: 'Ramadhan', icon: Gem },
             { path: '/cms/tentang', label: 'Tentang', icon: FileText },
             { path: '/cms/galeri', label: 'Galeri', icon: ImageIcon },
             { path: '/cms/email', label: 'Pesan Email', icon: Mail },

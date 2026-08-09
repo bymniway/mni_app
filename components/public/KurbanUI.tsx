@@ -219,8 +219,9 @@ export default function KurbanUI({
     <div className='max-w-6xl mx-auto px-4 py-10'>
       {/* 1. HEADER HERO */}
       <motion.div
-        initial='hidden'
-        animate='visible'
+        initial={{ y: 100, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 100, opacity: 0, scale: 0.9 }}
         variants={fadeUpVariant}
         className='text-center max-w-3xl mx-auto pt-8 mb-12 relative z-10'>
         <div className='inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-green-50 border border-green-100 text-green-700 text-xs font-bold uppercase tracking-wider mb-4 shadow-sm'>

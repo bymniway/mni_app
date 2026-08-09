@@ -26,7 +26,8 @@ import {
   ShieldCheck,
   QrCode,
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase'; // Sesuaikan path Supabase Anda
+import { supabase } from '../../lib/supabase';
+import { useSearchParams } from 'next/navigation';
 
 export default function ZiswafCalculator({
   data,
@@ -34,11 +35,11 @@ export default function ZiswafCalculator({
   isEditor = false,
 }: any) {
   const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 40 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
+      transition: { duration: 0.7, ease: 'easeOut' },
     },
   };
   const staggerContainer: Variants = {
@@ -188,7 +189,18 @@ export default function ZiswafCalculator({
   const safeWakafListToRender =
     dynamicWakafList.length > 0 ? dynamicWakafList : safeWakafList;
 
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get('tab');
+
   const [activeTab, setActiveTab] = useState('Zakat Fitrah');
+  useEffect(() => {
+    if (
+      urlTab &&
+      ['Zakat Fitrah', 'Zakat Mal', 'Fidyah', 'Infaq', 'Wakaf'].includes(urlTab)
+    ) {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab]);
   const malCategories = [
     'Profesi',
     'Emas, Perak & Perhiasan',
@@ -1693,31 +1705,42 @@ export default function ZiswafCalculator({
       />
 
       <motion.div
-        initial='hidden'
-        whileInView='visible'
+        initial={{ y: 100, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 100, opacity: 0, scale: 0.9 }}
+        // transition={{ duration: 0.6, ease: 'easeInOut' }}
         viewport={{ once: true, margin: '-50px' }}
-        variants={fadeInUp}
         className='max-w-6xl mx-auto px-4 md:px-8 pt-8 relative z-10'>
-        <div className='bg-gradient-to-br from-teal-800 to-slate-800 rounded-[2.5rem] p-8 md:p-16 text-center relative overflow-hidden shadow-xl mb-8 group/header'>
+        <motion.div
+          initial='hidden'
+          animate='visible'
+          variants={staggerContainer}
+          className='bg-gradient-to-br from-teal-800 to-slate-800 rounded-[2.5rem] p-8 md:p-16 text-center relative overflow-hidden shadow-xl mb-8 group/header'>
           <div className='absolute -left-10 -top-10 opacity-[0.05] group-hover/header:scale-125 transition-transform duration-1000 pointer-events-none'>
             <Scale className='w-[300px] h-[300px] text-white' />
           </div>
           <div className='absolute -right-20 -bottom-20 opacity-[0.06] group-hover/header:scale-125 transition-transform duration-1000 pointer-events-none'>
             <Calculator className='w-[400px] h-[400px] text-white' />
           </div>
-          <div className='relative z-10 max-w-3xl mx-auto'>
+          <motion.div
+            variants={fadeInUp}
+            className='relative z-10 max-w-3xl mx-auto'>
             <span className='inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-teal-100 text-[10px] font-bold uppercase tracking-widest mb-6 border border-white/10 shadow-sm'>
               Kalkulator Cerdas
             </span>
-            <h1 className='text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight'>
+            <motion.h1
+              variants={fadeInUp}
+              className='text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight'>
               {data?.judul || 'Layanan ZISWAF MNI'}
-            </h1>
-            <p className='text-base md:text-lg text-teal-50/80 font-medium leading-relaxed max-w-2xl mx-auto'>
+            </motion.h1>
+            <motion.p
+              variants={fadeInUp}
+              className='text-base md:text-lg text-teal-50/80 font-medium leading-relaxed max-w-2xl mx-auto'>
               {data?.deskripsi ||
                 'Kalkulasi akurat, pembayaran mudah, dan penyaluran transparan sesuai ketentuan mazhab terpercaya.'}
-            </p>
-          </div>
-        </div>
+            </motion.p>
+          </motion.div>
+        </motion.div>
       </motion.div>
 
       <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20'>
@@ -1726,14 +1749,17 @@ export default function ZiswafCalculator({
           whileInView='visible'
           viewport={{ once: true }}
           variants={fadeInUp}
-          className='bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto hide-scrollbar gap-2 mb-8'>
+          className='bg-white p-2 rounded-full shadow-sm border border-slate-100 flex overflow-x-auto hide-scrollbar gap-2 mb-8'>
           {['Zakat Fitrah', 'Zakat Mal', 'Fidyah', 'Infaq', 'Wakaf'].map(
             (tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`shrink-0 flex-1 py-3 px-6 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${activeTab === tab ? 'bg-teal-700 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 hover:text-teal-700'}`}>
-                {tab}
+                className={`group relative md:overflow-hidden items-center justify-center shrink-0 flex-1 py-3 px-6 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${activeTab === tab ? 'bg-teal-700 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 hover:text-teal-700'}`}>
+                <span className='absolute  inset-0 bg-teal-500 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-in-out'></span>
+                <span className='relative group-hover:text-white transition-colors duration-400 '>
+                  {tab}
+                </span>
               </button>
             ),
           )}
@@ -2163,8 +2189,15 @@ export default function ZiswafCalculator({
                       (!zResult.statusWajib ||
                         (!zResult.wajibZakatRp && !zResult.wajibZakatTeks)))
                   }
-                  className='relative z-10 w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3.5 rounded-xl transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-700 shadow-md shadow-teal-900/10'>
-                  Selesaikan Pembayaran
+                  className='group relative overflow-hidden flex items-center justify-center z-10 w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3.5 rounded-full transition-all flex disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-700 
+                  disabled:pointer-events-none
+                  shadow-md shadow-teal-900/10'>
+                  <span
+                    className='absolute inset-0 bg-teal-500 rounded-full scale-x-0 
+                  origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-in-out'></span>
+                  <span className='relative group-hover:text-white transition-colors duration-400 '>
+                    Selesaikan Pembayaran
+                  </span>
                 </button>
               </div>
             </div>

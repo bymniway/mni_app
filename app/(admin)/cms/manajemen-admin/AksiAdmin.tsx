@@ -266,7 +266,7 @@ export default function AksiAdmin({ admin }: { admin: any }) {
                 disabled={isSuperAdmin}
                 className={`w-full mt-1 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all ${isSuperAdmin ? 'bg-zinc-50 text-zinc-400 cursor-not-allowed' : 'bg-white text-zinc-900'}`}>
                 <option value='false'>Admin Biasa</option>
-                <option value='true'>Root (Dewa)</option>
+                <option value='true'>Root</option>
               </select>
             </div>
           </div>

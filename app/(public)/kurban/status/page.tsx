@@ -605,17 +605,26 @@ function StatusContent() {
     <div className='min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 font-sans selection:bg-teal-100 selection:text-teal-900'>
       <div className='max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out'>
         {/* Header & Search Bar */}
-        <div className='text-center space-y-1.5 sm:space-y-2'>
+        <motion.div
+          initial={{ y: 100, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 100, opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.5 }}
+          className='text-center space-y-1.5 sm:space-y-2'>
           <h1 className='text-2xl sm:text-[28px] leading-tight font-extrabold text-teal-600 tracking-tight'>
             Lacak Status Kurban
           </h1>
           <p className='text-xs sm:text-[15px] text-slate-500 font-medium'>
             Pantau progress pendaftaran dan penyaluran kurban Anda.
           </p>
-        </div>
+        </motion.div>
 
-        <form
+        <motion.form
           onSubmit={cariStatus}
+          initial={{ y: 100, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 100, opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.5 }}
           className='relative flex items-center shadow-sm rounded-xl sm:rounded-2xl bg-white transition-all focus-within:shadow-md focus-within:ring-1 focus-within:ring-teal-500/20 border border-slate-200/80'>
           <Search className='absolute left-4 sm:left-5 w-4 h-4 sm:w-5 sm:h-5 text-slate-400' />
           <input
@@ -638,7 +647,7 @@ function StatusContent() {
               )}
             </button>
           </div>
-        </form>
+        </motion.form>
 
         <div className='space-y-6'>
           {isLoading && (

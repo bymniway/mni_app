@@ -689,11 +689,12 @@ export default function GaleriKegiatan({
                 <button
                   key={idx}
                   onClick={() => handleFilterClick(filter)}
-                  className={`shrink-0 px-6 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeFilter === filter ? 'bg-mni-primary text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:border-mni-primary hover:text-mni-primary'}`}>
-                  {filter}
+                  className={`group relative overflow-hidden flex items-center justify-center hover:scale-[1.03] active:scale-95 transition-all duration-300 shrink-0 px-6 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeFilter === filter ? 'bg-mni-primary text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:text-white '}`}>
+                  <span className='absolute inset-0 bg-teal-600 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-in-out z-10'></span>
+                  <span className='relative z-20'>{filter}</span>
                   {count > 1 && (
                     <sup
-                      className={`text-[9px] font-black opacity-60 ${activeFilter === filter ? 'text-white' : 'text-mni-primary'}`}>
+                      className={`text-[9px] font-black opacity-60 z-20 ${activeFilter === filter ? 'text-white ' : 'text-mni-primary group-hover:text-white'}`}>
                       {count}
                     </sup>
                   )}
@@ -1194,8 +1195,9 @@ export default function GaleriKegiatan({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             onClick={scrollToTop}
-            className='fixed bottom-8 right-8 z-[40] p-3 md:p-3.5 bg-mni-primary text-white rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.2)] hover:bg-mni-primaryHover hover:scale-110 transition-all duration-300'>
-            <ChevronUp className='w-5 h-5 md:w-6 md:h-6' />
+            className='group overflow-hidden fixed bottom-8 right-8 z-[40] p-3 md:p-3.5 bg-mni-primary border border-teal-700 text-white rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.2)]  hover:scale-110 transition-all duration-300'>
+            <span className='absolute inset-0 bg-white rounded-full scale-y-0 origin-top group-hover:scale-y-100 group-hover:origin-bottom transition-transform duration-500 ease-in-out'></span>
+            <ChevronUp className='w-5 h-5 md:w-6 md:h-6 relative z-10 group-hover:text-emerald-700 transition-colors' />
           </motion.button>
         )}
       </AnimatePresence>

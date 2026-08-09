@@ -2,23 +2,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, HeartHandshake } from 'lucide-react';
 
 export default function Navbar() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
   // Daftar menu utama MNI App
   const navLinks = [
     { name: 'Beranda', href: '/' },
-    { name: 'Kurban', href: '/kurban' }, // Nanti halaman kurban kita pindah ke sini
+    { name: 'Kurban', href: '/kurban' },
+    { name: 'Ramadhan', href: '/ramadhan' },
     { name: 'ZISWAF', href: '/ziswaf' },
     { name: 'Tentang Kami', href: '/tentang' },
     { name: 'Galeri', href: '/galeri' },
   ];
 
   const toggleMenu = () => setIsOpen(!isOpen);
+  const goToInfaq = () => {
+    router.push('/ziswaf?tab=Infaq');
+  };
 
   return (
     <nav className='bg-mni-surface border-b border-gray-100 sticky top-0 z-50 shadow-sm'>
@@ -57,11 +62,15 @@ export default function Navbar() {
 
           {/* Tombol Aksi Desktop */}
           <div className='hidden md:flex items-center'>
-            <Link href='/ziswaf'>
-              <button className='bg-mni-accent text-white px-6 py-2.5 rounded-xl font-bold hover:bg-opacity-90 transition shadow-md'>
+            <button
+              onClick={goToInfaq}
+              className='group relative overflow-hidden flex items-center justify-center bg-mni-accent text-gray-100 px-6 py-2.5 rounded-full font-bold hover:scale-[1.03] active:scale-95 transition-all shadow-md'>
+              <span className='absolute inset-0 bg-emerald-700 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+              <span className='relative group-hover:text-white transition-colors duration-400 '>
+                {' '}
                 Donasi Sekarang
-              </button>
-            </Link>
+              </span>
+            </button>
           </div>
 
           {/* Mobile Menu Button (Hamburger) */}
@@ -105,13 +114,11 @@ export default function Navbar() {
             );
           })}
           <div className='pt-4 border-t border-gray-100'>
-            <Link
-              href='/ziswaf'
-              onClick={() => setIsOpen(false)}>
-              <button className='w-full bg-mni-accent text-white px-4 py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-md'>
-                Donasi Sekarang
-              </button>
-            </Link>
+            <button
+              onClick={goToInfaq}
+              className='w-full bg-mni-accent text-white px-4 py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-md'>
+              Donasi Sekarang
+            </button>
           </div>
         </div>
       </div>

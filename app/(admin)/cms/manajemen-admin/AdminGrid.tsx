@@ -156,7 +156,7 @@ export default function AdminGrid({ admins }: { admins: any[] }) {
               <div className='relative z-10 flex flex-wrap gap-2 mb-6'>
                 <span
                   className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide border ${admin.is_root ? 'bg-white text-zinc-900 border-white' : 'bg-zinc-100 text-zinc-700 border-zinc-200'}`}>
-                  {admin.is_root ? 'ROOT DEWA' : 'ADMIN BIASA'}
+                  {admin.is_root ? 'ROOT' : 'ADMIN BIASA'}
                 </span>
 
                 {admin.is_active ? (

@@ -2,14 +2,26 @@ name: Keep Alive Cron Job
 
 on:
   schedule:
+    # Menjalankan script setiap hari Senin, Rabu, dan Jumat pukul 00:00 UTC
     - cron: '0 0 * * 1,3,5'
+
+    # Menjalankan script setiap 12 jam sekali (misal: 00:00 dan 12:00 UTC)
+    #- cron: '0 */12 * * *'
+
+    # Menjalankan script setiap 15 menit sekali
+    #- cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping MNI Keep-Alive API
+      - name: Ping MNI UI dan API
         run: |
+          # 1. Mengetuk halaman UI
+          curl -sSf https://mni-app.vercel.app > /dev/null
+
+          # 2. Mengetuk API untuk mereset timer "Pause/Sleep" Supabase
           curl -sSf https://mni-app.vercel.app/api/keep-alive > /dev/null
-          echo "Ping berhasil dikirim ke server MNI."
+
+          echo "Ping berhasil dikirim ke UI dan API server MNI."
