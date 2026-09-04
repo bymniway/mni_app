@@ -1,6 +1,136 @@
+// 'use client';
+
+// import { useState } from 'react';
+// import Link from 'next/link';
+// import { usePathname, useRouter } from 'next/navigation';
+// import { Menu, X, HeartHandshake } from 'lucide-react';
+
+// export default function Navbar() {
+//   const router = useRouter();
+//   const [isOpen, setIsOpen] = useState(false);
+//   const pathname = usePathname();
+
+//   // Daftar menu utama MNI App
+//   const navLinks = [
+//     { name: 'Beranda', href: '/' },
+//     { name: 'Kurban', href: '/kurban' },
+//     { name: 'Ramadhan', href: '/ramadhan' },
+//     { name: 'ZISWAF', href: '/ziswaf' },
+//     { name: 'Tentang Kami', href: '/tentang' },
+//     { name: 'Galeri', href: '/galeri' },
+//   ];
+
+//   const toggleMenu = () => setIsOpen(!isOpen);
+//   const goToInfaq = () => {
+//     router.push('/ziswaf?tab=Infaq');
+//   };
+
+//   return (
+//     <nav className='bg-mni-surface border-b border-gray-100 sticky top-0 z-50 shadow-sm'>
+//       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+//         <div className='flex justify-between items-center h-20'>
+//           {/* Logo / Brand */}
+//           <Link
+//             href='/'
+//             className='flex items-center space-x-2'>
+//             <div className='w-10 h-10 bg-mni-primary rounded-xl flex items-center justify-center text-white'>
+//               <HeartHandshake className='w-6 h-6' />
+//             </div>
+//             <span className='font-bold text-xl text-mni-primary tracking-tight'>
+//               MNI App
+//             </span>
+//           </Link>
+
+//           {/* Desktop Menu */}
+//           <div className='hidden md:flex items-center space-x-8'>
+//             {navLinks.map((link) => {
+//               const isActive = pathname === link.href;
+//               return (
+//                 <Link
+//                   key={link.name}
+//                   href={link.href}
+//                   className={`font-medium transition-colors duration-200 hover:text-mni-primary ${
+//                     isActive
+//                       ? 'text-mni-primary border-b-2 border-mni-primary pb-1'
+//                       : 'text-mni-muted'
+//                   }`}>
+//                   {link.name}
+//                 </Link>
+//               );
+//             })}
+//           </div>
+
+//           {/* Tombol Aksi Desktop */}
+//           <div className='hidden md:flex items-center'>
+//             <button
+//               onClick={goToInfaq}
+//               className='group relative overflow-hidden flex items-center justify-center bg-mni-accent text-gray-100 px-6 py-2.5 rounded-full font-bold hover:scale-[1.03] active:scale-95 transition-all shadow-md'>
+//               <span className='absolute inset-0 bg-emerald-700 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+//               <span className='relative group-hover:text-white transition-colors duration-400 '>
+//                 {' '}
+//                 Donasi Sekarang
+//               </span>
+//             </button>
+//           </div>
+
+//           {/* Mobile Menu Button (Hamburger) */}
+//           <div className='md:hidden flex items-center'>
+//             <button
+//               onClick={toggleMenu}
+//               className='text-mni-text hover:text-mni-primary focus:outline-none p-2'
+//               aria-label='Toggle menu'>
+//               {isOpen ? (
+//                 <X className='w-7 h-7' />
+//               ) : (
+//                 <Menu className='w-7 h-7' />
+//               )}
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Mobile Menu (Dropdown) */}
+//       <div
+//         className={`md:hidden absolute w-full bg-mni-surface border-b border-gray-100 shadow-lg transition-all duration-300 ease-in-out ${
+//           isOpen
+//             ? 'opacity-100 translate-y-0 visible'
+//             : 'opacity-0 -translate-y-4 invisible'
+//         }`}>
+//         <div className='px-4 pt-2 pb-6 space-y-2'>
+//           {navLinks.map((link) => {
+//             const isActive = pathname === link.href;
+//             return (
+//               <Link
+//                 key={link.name}
+//                 href={link.href}
+//                 onClick={() => setIsOpen(false)} // Tutup menu saat diklik
+//                 className={`block px-4 py-3 rounded-xl font-medium transition-colors ${
+//                   isActive
+//                     ? 'bg-mni-primary/10 text-mni-primary'
+//                     : 'text-mni-muted hover:bg-gray-50'
+//                 }`}>
+//                 {link.name}
+//               </Link>
+//             );
+//           })}
+//           <div className='pt-4 border-t border-gray-100'>
+//             <button
+//               onClick={goToInfaq}
+//               className='w-full bg-mni-accent text-white px-4 py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-md'>
+//               Donasi Sekarang
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </nav>
+//   );
+// }
+//
+//
+//
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, HeartHandshake } from 'lucide-react';
@@ -8,7 +138,19 @@ import { Menu, X, HeartHandshake } from 'lucide-react';
 export default function Navbar() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+
+  // Deteksi pergerakan scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      // Jika halaman digeser ke bawah lebih dari 20px, aktifkan efek glass
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Daftar menu utama MNI App
   const navLinks = [
@@ -26,11 +168,31 @@ export default function Navbar() {
   };
 
   return (
-    <nav className='bg-mni-surface border-b border-gray-100 sticky top-0 z-50 shadow-sm'>
+    <nav
+      className={`sticky top-0 z-50 transition-all duration-300 border-b ${
+        isScrolled
+          ? 'bg-mni-surface/80 backdrop-blur-md border-gray-100/50 shadow-md' // Mode Glassmorphism saat discroll
+          : 'bg-mni-surface border-gray-100 shadow-sm' // Mode Solid saat mentok atas
+      }`}>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex justify-between items-center h-20'>
           {/* Logo / Brand */}
           <Link
+            href='/'
+            className='flex items-center hover:opacity-90 transition-opacity'>
+            {/* Gambar PNG Logo */}
+            <img
+              src='/mni.png'
+              alt='Logo MNI'
+              className='h-10 w-auto object-contain'
+            />
+
+            {/* (Opsional) Hapus elemen span di bawah ini jika Mas HANYA ingin menampilkan gambar tanpa teks samping */}
+            {/* <span className='font-bold text-xl text-mni-primary tracking-tight hidden sm:block'>
+              MNI App
+            </span> */}
+          </Link>
+          {/* <Link
             href='/'
             className='flex items-center space-x-2'>
             <div className='w-10 h-10 bg-mni-primary rounded-xl flex items-center justify-center text-white'>
@@ -39,7 +201,7 @@ export default function Navbar() {
             <span className='font-bold text-xl text-mni-primary tracking-tight'>
               MNI App
             </span>
-          </Link>
+          </Link> */}
 
           {/* Desktop Menu */}
           <div className='hidden md:flex items-center space-x-8'>
@@ -49,7 +211,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`font-medium transition-colors duration-200 hover:text-mni-primary ${
+                  className={`font-medium hover:scale-[1.03] active:scale-95 transition-all duration-200 hover:text-mni-primary ${
                     isActive
                       ? 'text-mni-primary border-b-2 border-mni-primary pb-1'
                       : 'text-mni-muted'
@@ -67,7 +229,6 @@ export default function Navbar() {
               className='group relative overflow-hidden flex items-center justify-center bg-mni-accent text-gray-100 px-6 py-2.5 rounded-full font-bold hover:scale-[1.03] active:scale-95 transition-all shadow-md'>
               <span className='absolute inset-0 bg-emerald-700 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
               <span className='relative group-hover:text-white transition-colors duration-400 '>
-                {' '}
                 Donasi Sekarang
               </span>
             </button>
@@ -91,7 +252,11 @@ export default function Navbar() {
 
       {/* Mobile Menu (Dropdown) */}
       <div
-        className={`md:hidden absolute w-full bg-mni-surface border-b border-gray-100 shadow-lg transition-all duration-300 ease-in-out ${
+        className={`md:hidden absolute w-full border-b border-gray-100 transition-all duration-300 ease-in-out ${
+          isScrolled
+            ? 'bg-mni-surface/90 backdrop-blur-md shadow-lg'
+            : 'bg-mni-surface shadow-md'
+        } ${
           isOpen
             ? 'opacity-100 translate-y-0 visible'
             : 'opacity-0 -translate-y-4 invisible'
@@ -113,7 +278,7 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <div className='pt-4 border-t border-gray-100'>
+          <div className='pt-4 border-t border-gray-100/50'>
             <button
               onClick={goToInfaq}
               className='w-full bg-mni-accent text-white px-4 py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-md'>

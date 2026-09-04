@@ -12,6 +12,7 @@ const pathDictionary: Record<string, string> = {
   '/ziswaf': 'Ziswaf',
   '/galeri': 'Galeri Kegiatan Masjid Nurul Iman',
   '/tentang': 'Tentang Masjid Nurul Iman',
+  '/ramadhan': 'Informasi Ramadhan Masjid Nurul Iman',
 };
 
 const excludedPaths = ['/login', '/cms', '/admin'];

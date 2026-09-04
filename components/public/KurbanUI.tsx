@@ -346,16 +346,25 @@ export default function KurbanUI({
           <span className='text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2'>
             Layanan Transaksi
           </span>
-          <div className='bg-white p-1.5 rounded-2xl border border-gray-200 flex shadow-sm gap-1.5'>
+          <div className='bg-white p-1.5 rounded-full border border-gray-200 flex shadow-sm gap-1.5'>
             <button
               onClick={() => setActiveTab('beli')}
-              className={`flex items-center px-5 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'beli' ? 'bg-mni-primary text-white shadow-md' : 'text-mni-muted hover:bg-green-50 hover:text-mni-primary'}`}>
-              <ShoppingBag className='w-4 h-4 mr-2' /> Katalog Hewan
+              className={`group relative overflow-hidden flex items-center px-5 py-3 rounded-full font-bold hover:scale-[1.03] active:scale-95 transition-all text-sm ${activeTab === 'beli' ? 'bg-mni-primary text-white shadow-md' : 'text-mni-muted hover:bg-green-50 hover:text-mni-primary'}`}>
+              <span className='absolute inset-0 bg-emerald-600  rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+              <ShoppingBag className='w-4 h-4 mr-2 group-hover:text-white transition-colors duration-400 z-10 ' />
+              <span className='relative group-hover:text-white transition-colors duration-400 '>
+                Katalog Hewan
+              </span>
             </button>
             <button
               onClick={() => setActiveTab('jasa')}
-              className={`flex items-center px-5 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'jasa' ? 'bg-mni-accent text-white shadow-md' : 'text-mni-muted hover:bg-orange-50 hover:text-mni-accent'}`}>
-              <Scissors className='w-4 h-4 mr-2' /> Titip Potong
+              className={`group relative overflow-hidden flex items-center px-5 py-3 rounded-full font-bold hover:scale-[1.03] active:scale-95 transition-all text-sm ${activeTab === 'jasa' ? 'bg-mni-accent text-white shadow-md' : 'text-mni-muted hover:bg-orange-50 hover:text-mni-accent'}`}>
+              <span className='absolute inset-0 bg-orange-300 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+              <Scissors className='w-4 h-4 mr-2 group-hover:text-white transition-colors duration-400 z-10' />
+
+              <span className='relative group-hover:text-white transition-colors duration-400 '>
+                Titip Potong
+              </span>
             </button>
           </div>
         </div>
@@ -363,16 +372,24 @@ export default function KurbanUI({
           <span className='text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2'>
             Transparansi Laporan
           </span>
-          <div className='bg-white p-1.5 rounded-2xl border border-gray-200 flex shadow-sm gap-1.5'>
+          <div className='bg-white p-1.5 rounded-full border border-gray-200 flex shadow-sm gap-1.5'>
             <button
               onClick={() => setActiveTab('pekurban')}
-              className={`flex items-center px-5 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'pekurban' ? 'bg-gray-800 text-white shadow-md' : 'text-mni-muted hover:bg-gray-100 hover:text-gray-900'}`}>
-              <Users className='w-4 h-4 mr-2' /> Daftar Pekurban
+              className={`group relative overflow-hidden flex items-center px-5 py-3 rounded-full font-bold hover:scale-[1.03] active:scale-95 transition-all text-sm ${activeTab === 'pekurban' ? 'bg-gray-800 text-white shadow-md' : 'text-mni-muted hover:bg-gray-100 hover:text-gray-900'}`}>
+              <span className='absolute inset-0 bg-slate-400 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+              <Users className='w-4 h-4 mr-2 group-hover:text-white transition-colors duration-400 z-10' />
+              <span className='relative group-hover:text-white transition-colors duration-400 '>
+                Daftar Pekurban
+              </span>
             </button>
             <button
               onClick={() => setActiveTab('panitia')}
-              className={`flex items-center px-5 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'panitia' ? 'bg-gray-800 text-white shadow-md' : 'text-mni-muted hover:bg-gray-100 hover:text-gray-900'}`}>
-              <UserCheck className='w-4 h-4 mr-2' /> Susunan Panitia
+              className={`group relative overflow-hidden flex items-center px-5 py-3 rounded-full font-bold hover:scale-[1.03] active:scale-95 transition-all text-sm ${activeTab === 'panitia' ? 'bg-gray-800 text-white shadow-md' : 'text-mni-muted hover:bg-gray-100 hover:text-gray-900'}`}>
+              <span className='absolute inset-0 bg-slate-400 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+              <UserCheck className='w-4 h-4 mr-2 group-hover:text-white transition-colors duration-400 z-10' />
+              <span className='relative group-hover:text-white transition-colors duration-400 '>
+                Susunan Panitia
+              </span>
             </button>
           </div>
         </div>
@@ -662,15 +679,18 @@ export default function KurbanUI({
 
                           {isTersedia && !isEditor ? (
                             <Link href={`/checkout?hewanId=${hewan.id}`}>
-                              <button className='w-full bg-gray-900 text-white py-3.5 rounded-xl font-bold hover:bg-mni-primary transition-colors shadow-md flex items-center justify-center relative z-20'>
-                                <ShoppingBag className='w-5 h-5 mr-2' /> Pesan
-                                Sekarang
+                              <button className='group overflow-hidden w-full  text-white py-3.5 rounded-full font-bold bg-gray-900 hover:scale-[1.03] active:scale-95 transition-all shadow-md flex items-center justify-center relative '>
+                                <span className='absolute inset-0 bg-mni-primary rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-in-out'></span>
+                                <ShoppingBag className='w-5 h-5 mr-2 group-hover:text-white transition-colors duration-400 z-10' />
+                                <span className='relative group-hover:text-white transition-colors duration-400 '>
+                                  Pesan Sekarang
+                                </span>
                               </button>
                             </Link>
                           ) : (
                             <button
                               disabled
-                              className='w-full bg-gray-100 text-gray-400 py-3.5 rounded-xl font-bold cursor-not-allowed border border-gray-200 relative z-20'>
+                              className='w-full bg-gray-100 text-gray-400 py-3.5 rounded-full font-bold cursor-not-allowed border border-gray-200 relative z-20'>
                               {isEditor
                                 ? 'Nonaktif di Mode Editor'
                                 : 'Alhamdulillah Terjual'}
@@ -740,14 +760,17 @@ export default function KurbanUI({
                       <Link
                         href={`/checkout?hewanId=${jasa.id}`}
                         className='relative z-20 block shrink-0'>
-                        <button className='w-full bg-white border-2 border-mni-accent text-mni-accent hover:bg-mni-accent hover:text-white py-3.5 rounded-xl font-bold transition-colors shadow-sm'>
-                          Daftar Titip Potong
+                        <button className='group relative overflow-hidden w-full bg-white border-2 border-mni-accent hover:scale-[1.03] active:scale-95 transition-all text-mni-accent hover:text-white py-3.5 rounded-full font-bold  shadow-sm'>
+                          <span className='absolute inset-0 bg-mni-accent  rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+                          <span className='relative group-hover:text-white transition-colors duration-400 '>
+                            Daftar Titip Potong
+                          </span>
                         </button>
                       </Link>
                     ) : (
                       <button
                         disabled
-                        className='w-full bg-gray-100 text-gray-400 py-3.5 rounded-xl font-bold cursor-not-allowed border border-gray-200 relative z-20 shrink-0'>
+                        className='w-full bg-gray-100 text-gray-400 py-3.5 rounded-full font-bold cursor-not-allowed border border-gray-200 relative z-20 shrink-0'>
                         {isEditor ? 'Nonaktif di Mode Editor' : 'Kuota Penuh'}
                       </button>
                     )}

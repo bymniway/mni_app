@@ -339,7 +339,7 @@ export default function FloatingRamadhanPill({
           {/* ANIMASI 4: Reveal Menyapu dari Bawah untuk Tombol Scroll To Top */}
           <button
             onClick={scrollToTop}
-            className={`group relative overflow-hidden pointer-events-auto absolute left-2 bg-white border border-emerald-100 text-emerald-600 p-3 rounded-full shadow-xl shadow-emerald-900/10 transition-all duration-300 transform ${isScrolled ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-50'}`}
+            className={`group relative overflow-hidden pointer-events-auto absolute left-2 bg-white border border-emerald-100 text-emerald-600 p-3 rounded-full shadow-xl shadow-emerald-900/10 hover:scale-[1.03] active:scale-95 transition-all duration-300 transform ${isScrolled ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-50'}`}
             title='Kembali ke Atas'>
             {/* Background yang menyapu dari bawah ke atas */}
             <span className='absolute inset-0 bg-emerald-700 rounded-full scale-y-0 origin-top group-hover:scale-y-100 group-hover:origin-bottom transition-transform duration-500 ease-in-out'></span>

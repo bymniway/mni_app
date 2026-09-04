@@ -98,6 +98,7 @@ export default function ProfilTentang({
             </motion.h1>
             <br />
             <motion.p
+              variants={fadeInUp}
               contentEditable={isEditor}
               suppressContentEditableWarning
               onBlur={(e) =>

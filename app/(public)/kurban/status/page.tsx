@@ -548,8 +548,8 @@ function StatusContent() {
 
     const isMurniAngka = /^\d+$/.test(cleanKeyword);
 
-    if (isMurniAngka && cleanKeyword.length < 4) {
-      alert('Masukkan minimal 4 digit nomor WhatsApp untuk mencari.');
+    if (isMurniAngka && cleanKeyword.length < 10) {
+      alert('Masukkan minimal 10 digit nomor WhatsApp untuk mencari.');
       return;
     }
 

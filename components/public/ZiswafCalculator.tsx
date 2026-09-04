@@ -1755,7 +1755,7 @@ export default function ZiswafCalculator({
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`group relative md:overflow-hidden items-center justify-center shrink-0 flex-1 py-3 px-6 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${activeTab === tab ? 'bg-teal-700 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 hover:text-teal-700'}`}>
+                className={`group relative md:overflow-hidden items-center justify-center shrink-0 flex-1 py-3 px-6 rounded-full font-semibold text-sm hover:scale-[1.03] active:scale-95 transition-all whitespace-nowrap ${activeTab === tab ? 'bg-teal-700 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 hover:text-teal-700'}`}>
                 <span className='absolute  inset-0 bg-teal-500 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-in-out'></span>
                 <span className='relative group-hover:text-white transition-colors duration-400 '>
                   {tab}
@@ -2189,7 +2189,7 @@ export default function ZiswafCalculator({
                       (!zResult.statusWajib ||
                         (!zResult.wajibZakatRp && !zResult.wajibZakatTeks)))
                   }
-                  className='group relative overflow-hidden flex items-center justify-center z-10 w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3.5 rounded-full transition-all flex disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-700 
+                  className='group relative overflow-hidden flex items-center justify-center z-10 w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3.5 rounded-full hover:scale-[1.03] active:scale-95 transition-all flex disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-700 
                   disabled:pointer-events-none
                   shadow-md shadow-teal-900/10'>
                   <span
@@ -2287,8 +2287,11 @@ export default function ZiswafCalculator({
                           setWakafNominal(''); // Reset nominal ketika membuka form wakaf baru
                           setIsCheckoutOpen(true);
                         }}
-                        className={`w-full text-white font-semibold py-3.5 rounded-xl transition-all text-sm shadow-md ${isPenuh ? 'bg-slate-300 cursor-not-allowed text-slate-500' : 'bg-teal-700 hover:bg-teal-800 shadow-teal-900/10'}`}>
-                        {isPenuh ? 'Target Terpenuhi' : 'Wakaf Sekarang'}
+                        className={`group relative overflow-hidden w-full text-white font-semibold py-3.5 rounded-full hover:scale-[1.03] active:scale-95 transition-all text-sm shadow-md ${isPenuh ? 'bg-slate-300 cursor-not-allowed text-slate-500' : 'bg-teal-700 hover:bg-teal-800 shadow-teal-900/10'}`}>
+                        <span className='absolute inset-0 bg-teal-600 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+                        <span className='relative group-hover:text-white transition-colors duration-400 '>
+                          {isPenuh ? 'Target Terpenuhi' : 'Wakaf Sekarang'}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -2645,8 +2648,11 @@ export default function ZiswafCalculator({
                     <button
                       type='submit'
                       disabled={isSubmitting}
-                      className='w-full flex items-center justify-center space-x-2 bg-teal-700 text-white py-4 rounded-xl font-bold text-lg hover:bg-teal-800 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed'>
-                      <span>Selanjutnya</span>
+                      className='group relative overflow-hidden w-full flex items-center justify-center bg-teal-700 text-white py-4 rounded-full font-bold text-lg hover:bg-teal-800 hover:scale-[1.03] active:scale-95 transition-all shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed'>
+                      <span className='absolute inset-0 bg-teal-600 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+                      <span className='relative group-hover:text-white transition-colors duration-400 '>
+                        Selanjutnya
+                      </span>
                     </button>
                   </div>
                 </form>
@@ -2691,18 +2697,24 @@ export default function ZiswafCalculator({
               <div className='flex gap-4'>
                 <button
                   onClick={() => setShowNiatModal(false)}
-                  className='flex-1 py-3.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200'>
-                  Cek Kembali
+                  className='group relative overflow-hidden flex-1 py-3.5 rounded-full font-bold bg-slate-100 hover:bg-slate-200 hover:scale-[1.03] active:scale-95 transition-all'>
+                  <span className='absolute inset-0 bg-slate-400 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+                  <span className='relative group-hover:text-white transition-colors duration-400 '>
+                    Cek Kembali
+                  </span>
                 </button>
                 <button
                   onClick={executeFinalCheckout}
                   disabled={isSubmitting}
-                  className='flex-1 py-3.5 rounded-xl font-bold text-white bg-teal-700 hover:bg-teal-800 flex items-center justify-center'>
-                  {isSubmitting ? (
-                    <Loader2 className='w-5 h-5 animate-spin' />
-                  ) : (
-                    'Bismillah, Kirim'
-                  )}
+                  className='group relative overflow-hidden flex-1 py-3.5 rounded-full font-bold text-white bg-teal-700 hover:bg-teal-800 flex items-center hover:scale-[1.03] active:scale-95 transition-all justify-center'>
+                  <span className='absolute inset-0 bg-teal-600 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+                  <span className='relative group-hover:text-white transition-colors duration-400 '>
+                    {isSubmitting ? (
+                      <Loader2 className='w-5 h-5 animate-spin' />
+                    ) : (
+                      'Bismillah, Kirim'
+                    )}
+                  </span>
                 </button>
               </div>
             </div>

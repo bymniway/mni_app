@@ -675,8 +675,11 @@ function CheckoutForm() {
             <button
               type='submit'
               form='checkout-form'
-              className='w-full mt-8 bg-mni-primary text-white py-4 rounded-xl text-base font-bold hover:bg-mni-primaryHover transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex justify-center shadow-md shadow-mni-primary/10'>
-              {metode === 'Lunas' ? 'Kirim Konfirmasi' : 'Amankan Slot'}
+              className='group relative overflow-hidden w-full mt-8 bg-mni-primary text-white py-4 rounded-full text-base font-bold hover:bg-mni-primaryHover hover:scale-[1.03] active:scale-95 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex justify-center shadow-md shadow-mni-primary/10'>
+              <span className='absolute inset-0 bg-teal-600 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+              <span className='relative group-hover:text-white transition-colors duration-400 '>
+                {metode === 'Lunas' ? 'Kirim Konfirmasi' : 'Amankan Slot'}
+              </span>
             </button>
           </div>
         </div>

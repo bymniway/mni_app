@@ -942,8 +942,11 @@ export default function GaleriKegiatan({
           <div className='relative inline-block'>
             <button
               onClick={() => setVisibleCount((prev) => prev + ITEMS_PER_PAGE)}
-              className='px-8 py-3 bg-white border-2 border-gray-200 text-mni-text font-bold rounded-xl hover:border-mni-primary hover:text-mni-primary transition-all active:scale-95'>
-              Muat Lebih Banyak
+              className='group relative overflow-hidden px-8 py-3 bg-white border-2 border-gray-200 text-mni-text font-bold rounded-full hover:border-mni-primary hover:text-mni-primary hover:scale-[1.03] active:scale-95 transition-all active:scale-95'>
+              <span className='absolute inset-0 bg-teal-600 rounded-full scale-x-0 origin-right group-hover:scale-x-100 group-hover:origin-left transition-transform duration-400 ease-in-out'></span>
+              <span className='relative group-hover:text-white transition-colors duration-400 '>
+                Muat Lebih Banyak
+              </span>
             </button>
             <span className='absolute -top-3 -right-3 bg-mni-primary text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md'>
               {filteredList.length - visibleCount}
@@ -1195,9 +1198,9 @@ export default function GaleriKegiatan({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             onClick={scrollToTop}
-            className='group overflow-hidden fixed bottom-8 right-8 z-[40] p-3 md:p-3.5 bg-mni-primary border border-teal-700 text-white rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.2)]  hover:scale-110 transition-all duration-300'>
-            <span className='absolute inset-0 bg-white rounded-full scale-y-0 origin-top group-hover:scale-y-100 group-hover:origin-bottom transition-transform duration-500 ease-in-out'></span>
-            <ChevronUp className='w-5 h-5 md:w-6 md:h-6 relative z-10 group-hover:text-emerald-700 transition-colors' />
+            className='group overflow-hidden fixed bottom-8 right-8 z-[40] p-3 md:p-3.5 bg-mni-primary border border-teal-700 text-white/50 rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.2)]  hover:scale-110 active:scale-95 transition-all duration-300'>
+            <span className='absolute inset-0 bg-teal-600 rounded-full scale-y-0 origin-top group-hover:scale-y-100 group-hover:origin-bottom transition-transform duration-500 ease-in-out'></span>
+            <ChevronUp className='w-5 h-5 md:w-6 md:h-6 relative z-10 group-hover:text-white transition-colors' />
           </motion.button>
         )}
       </AnimatePresence>
